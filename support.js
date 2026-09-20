@@ -110,6 +110,16 @@
     }
   }
 
+  function resolvePropDefaults(parsedProps) {
+    const resolved = {};
+    for (const key of Object.keys(parsedProps)) {
+      const value = parsedProps[key];
+      const isEditorSchema = value && typeof value === 'object' && !Array.isArray(value) && 'default' in value;
+      resolved[key] = isEditorSchema ? value.default : value;
+    }
+    return resolved;
+  }
+
   DCLogic.renderDocument = function (html, mountEl) {
     const wrapper = document.createElement('div');
     wrapper.innerHTML = html;
@@ -124,7 +134,7 @@
     const rawProps = scriptTag.getAttribute('data-props') || '{}';
     let parsedProps = {};
     try {
-      parsedProps = JSON.parse(rawProps);
+      parsedProps = resolvePropDefaults(JSON.parse(rawProps));
     } catch (error) {
       parsedProps = {};
     }
