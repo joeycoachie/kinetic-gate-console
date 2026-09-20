@@ -1,0 +1,195 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,500&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    .eng { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .eng .wordmark { font-family: 'Bodoni Moda', Georgia, serif; }
+    a, a:hover { color: var(--accent); }
+
+    @keyframes flashRow { 0%,49% { background: rgba(239,68,68,0.18); } 50%,100% { background: transparent; } }
+    .row-flash { animation: flashRow 1s step-start infinite; }
+
+    .rank-card { border: 1px solid #2a2e38; background: #111318; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+    .rank-card.matched { border-color: #1c6e52; background: #0f1712; }
+
+    .lever-btn { font-family: inherit; font-size: 10.5px; font-weight: 700; letter-spacing: 0.03em; padding: 7px 10px; background: #14161b; border: 1px solid #333947; color: #d7dbe4; cursor: pointer; white-space: nowrap; }
+    .lever-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .lever-btn.lever-danger { border-color: #6e2323; color: #f87171; }
+    .lever-btn.lever-danger:hover { border-color: #f87171; }
+    .lever-btn:disabled { opacity: 0.4; cursor: default; }
+
+    .score-98 { color: #34d399; }
+    .score-mid { color: #eab308; }
+  </style>
+</helmet>
+
+<div style="--accent:{{accent}}; width:1100px; background:#0a0b0d; color:#c9cdd6; padding:22px; display:flex; flex-direction:column; gap:16px;" class="eng">
+
+  <div style="display:flex; align-items:baseline; justify-content:space-between;">
+    <div style="display:flex; align-items:baseline; gap:12px;">
+      <span class="wordmark" style="font-size:16px; letter-spacing:0.16em; color:#f5f2ec; font-weight:500;">GATE</span>
+      <span style="font-size:11px; letter-spacing:0.08em; color:#5b6272;">// MANUAL OVERRIDE MATCH ENGINE v1.0</span>
+    </div>
+    <div style="font-size:11px; color:#8890a0;">{{headerDate}} | {{headerClock}}</div>
+  </div>
+
+  <div style="border:1px solid #2a2e38; background:#111318; padding:16px 18px; display:flex; flex-direction:column; gap:8px;">
+    <div style="font-size:12px; font-weight:800; color:#e6e9ef;">INBOUND CLIENT: {{clientName}}</div>
+    <div style="display:flex; gap:24px; flex-wrap:wrap; font-size:11.5px;">
+      <div><span style="color:#6b7280;">TARGET TYPE:</span> <span style="color:var(--accent); font-weight:700;">[{{targetType}}]</span></div>
+      <div><span style="color:#6b7280;">USER VIBE PROFILE:</span> <span style="color:var(--accent); font-weight:700;">[{{vibeProfile}}]</span></div>
+    </div>
+    <div style="font-size:11.5px; color:#9aa0ac;">SOCIAL LAYER DATA: {{socialLayer}}</div>
+  </div>
+
+  <div style="display:flex; flex-direction:column; gap:6px;">
+    <div style="font-size:11px; font-weight:800; letter-spacing:0.06em; color:var(--accent);">RANKED INSTRUCTOR SUPPLY AVAILABLE FOR MATCH</div>
+
+    <sc-for list="{{candidates}}" as="c" hint-placeholder-count="2">
+      <div class="rank-card {{c.matchedCls}} {{c.flashCls}}">
+        <div style="display:flex; justify-content:space-between; align-items:baseline;">
+          <div style="font-size:13.5px; font-weight:800; color:#e6e9ef;">{{c.rank}}. {{c.name}}</div>
+          <div style="font-size:13px; font-weight:800;" class="{{c.scoreCls}}">Score: {{c.score}}% MATCH</div>
+        </div>
+        <div style="font-size:11.5px; color:#9aa0ac; line-height:1.6;">
+          <div>* Taxonomy Rank: {{c.taxonomy}}</div>
+          <div>* Persona Match: {{c.persona}}</div>
+          <div>* Latency Metric: <span style="color:{{c.latencyColor}}; font-weight:700;">{{c.latency}}</span></div>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:4px;">
+          <sc-for list="{{c.actions}}" as="act" hint-placeholder-count="2">
+            <button class="lever-btn {{act.cls}}" onClick="{{act.fn}}" disabled="{{act.disabled}}">{{act.label}}</button>
+          </sc-for>
+          <sc-if value="{{c.showBountyInput}}" hint-placeholder-val="{{false}}">
+            <span style="font-size:11px; color:#9aa0ac; align-self:center;">Bounty applied: <span style="color:var(--accent); font-weight:700;">+${{c.bountyTotal}}</span></span>
+          </sc-if>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="border:1px solid #2a2e38; background:#0d0e11; padding:12px 16px;">
+    <div style="font-size:10.5px; font-weight:800; letter-spacing:0.08em; color:#4ade80; margin-bottom:8px;">SYSTEM LOG</div>
+    <div style="display:flex; flex-direction:column-reverse; gap:3px; max-height:100px; overflow-y:auto;">
+      <sc-for list="{{log}}" as="line" hint-placeholder-count="2">
+        <div style="font-size:11.5px; color:#4ade80; opacity:0.9;">{{line}}</div>
+      </sc-for>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#f5a623","options":["#f5a623","#22c55e","#38bdf8","#f87171"]}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      matchedId: null,
+      declinedId: null,
+      bounties: { d: 0, a: 0 },
+      flashId: null,
+      log: ['20:18:45  ALERT  inbound client Tan Qing Wen (Bangsar) — ranking supply']
+    };
+  }
+
+  pushLog(msg) {
+    this.setState(prev => ({ log: [...prev.log, msg].slice(-30) }));
+  }
+
+  directMatch(id, name) {
+    if (this.state.matchedId) return;
+    this.setState({ matchedId: id });
+    this.pushLog('MANUAL DIRECT MATCH → ' + name + ': override_type=direct_route, SMS unlock key sent to client');
+  }
+
+  addBounty(id, name) {
+    if (this.state.matchedId) return;
+    this.setState(prev => ({ bounties: { ...prev.bounties, [id]: prev.bounties[id] + 10 } }));
+    this.pushLog('ADD PAY BOUNTY → ' + name + ': +$10 injected');
+  }
+
+  overridePing(id, name) {
+    if (this.state.matchedId) return;
+    this.pushLog('FORCE OVERRIDE PING → ' + name + ': high-priority ping sent, bypassing queue order');
+  }
+
+  tripwire(id, name) {
+    if (this.state.matchedId) return;
+    this.setState({ flashId: id });
+    this.pushLog('TRIGGER SMS TRIPWIRE → ' + name + ': multi-channel blast dispatched');
+    setTimeout(() => this.setState(prev => (prev.flashId === id ? { flashId: null } : {})), 3000);
+  }
+
+  renderVals() {
+    const s = this.state;
+
+    const RAW = [
+      {
+        id: 'd', rank: 1, name: 'INSTRUCTOR D', score: 98, scoreCls: 'score-98',
+        taxonomy: 'Elite STOTT Pilates Certified / Certified Biomechanical Specialist',
+        persona: 'High-detail movement scientist. Matches client\'s analytical profile.',
+        latency: '0m (Immediate Responder)', latencyColor: '#34d399',
+        levers: ['direct', 'bounty']
+      },
+      {
+        id: 'a', rank: 2, name: 'INSTRUCTOR A', score: 74, scoreCls: 'score-mid',
+        taxonomy: 'High-volume strength and structural conditioning coach',
+        persona: 'Aggressive driver. High-energy friction risk with clinical-profile clients.',
+        latency: '14m (Sluggish responder — flagged row)', latencyColor: '#f87171',
+        levers: ['ping', 'tripwire']
+      }
+    ];
+
+    const candidates = RAW.map(c => {
+      const isMatched = s.matchedId === c.id;
+      const otherMatched = s.matchedId && s.matchedId !== c.id;
+      const actions = [];
+      if (c.levers.includes('direct')) {
+        actions.push({ label: isMatched ? 'MATCHED ✓' : 'MANUAL DIRECT MATCH', cls: 'lever-primary', disabled: !!s.matchedId, fn: () => this.directMatch(c.id, c.name) });
+      }
+      if (c.levers.includes('bounty')) {
+        actions.push({ label: 'ADD PAY BOUNTY: +$', cls: '', disabled: !!s.matchedId, fn: () => this.addBounty(c.id, c.name) });
+      }
+      if (c.levers.includes('ping')) {
+        actions.push({ label: 'FORCE OVERRIDE PING', cls: '', disabled: !!s.matchedId, fn: () => this.overridePing(c.id, c.name) });
+      }
+      if (c.levers.includes('tripwire')) {
+        actions.push({ label: 'TRIGGER SMS TRIPWIRE', cls: 'lever-danger', disabled: !!s.matchedId, fn: () => this.tripwire(c.id, c.name) });
+      }
+      return {
+        id: c.id, rank: c.rank, name: c.name, score: c.score, scoreCls: c.scoreCls,
+        taxonomy: c.taxonomy, persona: c.persona, latency: c.latency, latencyColor: c.latencyColor,
+        matchedCls: isMatched ? 'matched' : '',
+        flashCls: s.flashId === c.id ? 'row-flash' : '',
+        actions,
+        showBountyInput: s.bounties[c.id] > 0,
+        bountyTotal: s.bounties[c.id]
+      };
+    });
+
+    return {
+      accent: this.props.accent ?? '#f5a623',
+      headerDate: '09/01/2026',
+      headerClock: '20:18:45',
+      clientName: 'Tan Qing Wen',
+      targetType: 'STOTT PILATES / HYROX HYBRID',
+      vibeProfile: 'CLINICAL / HIGH PERFORMANCE',
+      socialLayer: 'Gymshark Aesthetic Graph / High-Value Creative Cohort Verified',
+      candidates,
+      log: s.log
+    };
+  }
+}
+</script>
+</body>
+</html>

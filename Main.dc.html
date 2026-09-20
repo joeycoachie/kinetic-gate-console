@@ -1,0 +1,648 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,500;0,600;1,400&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    .journey { font-family: 'Manrope', ui-sans-serif, system-ui, sans-serif; }
+    .journey .display { font-family: 'Bodoni Moda', Georgia, serif; }
+    .journey .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    a, a:hover { color: var(--accent); }
+    .journey ::-webkit-scrollbar { width: 0; height: 0; }
+
+    .path-card { border: 1px solid #2b2b2d; background: #141416; padding: 20px; cursor: pointer; transition: border-color 0.15s ease, background 0.15s ease; }
+    .path-card:hover { border-color: #45403a; }
+    .path-card.selected { border-color: var(--accent); background: #1a1712; }
+
+    .opt-card { border: 1px solid #2b2b2d; background: #141416; padding: 16px 18px; cursor: pointer; transition: border-color 0.15s ease, background 0.15s ease; }
+    .opt-card:hover { border-color: #45403a; }
+    .opt-card.selected { border-color: var(--accent); background: #1a1712; }
+
+    .letter-tag { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border: 1px solid #45464a; font-size: 11px; font-weight: 700; color: #9a9a9e; flex-shrink: 0; }
+    .opt-card.selected .letter-tag { border-color: var(--accent); color: var(--accent); }
+
+    .cta-btn { font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; padding: 16px 20px; border: 1px solid var(--accent); background: var(--accent); color: #14110a; cursor: pointer; text-align: center; }
+    .cta-btn:active { transform: translateY(1px); }
+    .cta-btn.disabled { background: transparent; color: #55565c; border-color: #2b2b2d; cursor: default; }
+
+    .ghost-btn { font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; padding: 14px 18px; border: 1px solid #34343a; background: transparent; color: #d8d8da; cursor: pointer; text-align: center; }
+    .ghost-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .ghost-btn.connected { border-color: var(--accent); color: var(--accent); }
+
+    .chip { border: 1px solid #34343a; padding: 8px 12px; font-size: 11.5px; color: #b9b9bc; cursor: pointer; background: transparent; }
+    .chip:hover { border-color: var(--accent); color: var(--accent); }
+    .chip.selected { border-color: var(--accent); color: var(--accent); background: #1a1712; }
+
+    .loc-input { font-family: 'Manrope', sans-serif; font-size: 14px; background: #141416; border: 1px solid #2b2b2d; color: #f0efe9; padding: 13px 14px; width: 100%; outline: none; }
+    .loc-input:focus { border-color: var(--accent); }
+
+    .dot { width: 5px; height: 5px; border-radius: 50%; background: #34343a; }
+    .dot.done { background: var(--accent); }
+    .dot.current { background: var(--accent); box-shadow: 0 0 0 3px rgba(201,167,105,0.18); }
+
+    .slot { border: 1px solid #242427; background: #141416; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .slot:hover { border-color: #45403a; }
+    .slot.selected { border-color: var(--accent); background: #1a1712; }
+
+    .sms-banner { border: 1px solid #242427; background: #17171a; padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start; cursor: pointer; }
+    .sms-banner:hover { border-color: var(--accent); }
+
+    .rule { height: 1px; background: linear-gradient(90deg, transparent, #2e2b22 15%, #2e2b22 85%, transparent); }
+    .section-tag { font-size: 10px; letter-spacing: 0.1em; color: var(--accent); font-weight: 700; }
+    .row { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; }
+    .row .k { color: #6f6a5c; letter-spacing: 0.04em; }
+    .row .v { color: #efeade; font-weight: 600; text-align: right; }
+
+    .restart-btn { position: absolute; top: 12px; right: 14px; z-index: 5; font-family: 'Manrope', sans-serif; font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; color: #55565c; background: none; border: none; cursor: pointer; padding: 6px; }
+    .restart-btn:hover { color: var(--accent); }
+  </style>
+</helmet>
+
+<div style="--accent:{{accent}}; width:390px; height:844px; background:#0b0b0c; color:#e9e7e2; display:flex; flex-direction:column; overflow:hidden; position:relative;" class="journey">
+
+  <!-- STAGE PROGRESS STRIP -->
+  <div style="display:flex; gap:3px; flex-shrink:0;">
+    <sc-for list="{{stages}}" as="st" hint-placeholder-count="4">
+      <div style="flex-grow:1; height:3px; background:{{st.color}};"></div>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{showRestart}}" hint-placeholder-val="{{false}}">
+    <button class="restart-btn" onClick="{{restart}}">↺ Restart</button>
+  </sc-if>
+
+  <!-- ============ SCENE: ENTRY ============ -->
+  <sc-if value="{{isEntry}}" hint-placeholder-val="{{true}}">
+    <div style="flex-grow:1; display:flex; flex-direction:column; overflow:hidden; padding:0 26px;">
+      <div style="flex-grow:1; display:flex; flex-direction:column; justify-content:center; gap:28px;">
+        <div style="display:flex; flex-direction:column; align-items:center; gap:18px; text-align:center;">
+          <svg width="46" height="46" viewBox="0 0 48 48" fill="none">
+            <path d="M10 42V14C10 9.6 15 6 24 6C33 6 38 9.6 38 14V42" stroke="{{accent}}" stroke-width="2.2"/>
+            <line x1="10" y1="24" x2="38" y2="24" stroke="{{accent}}" stroke-width="2.2"/>
+            <line x1="10" y1="42" x2="38" y2="42" stroke="{{accent}}" stroke-width="2.2"/>
+          </svg>
+          <div class="display" style="font-size:15px; letter-spacing:0.32em; color:#f5f2ec; font-weight:500;">KINETIC GATE</div>
+          <div style="font-size:11px; letter-spacing:0.16em; color:#6a6a6e; font-weight:700;">GATE // SYSTEM OF TRUTH</div>
+        </div>
+        <div class="display" style="font-size:22px; line-height:1.35; font-weight:500; color:#d8d6d0; text-align:center; padding:0 4px;">
+          You are either inside the gate — governed, elite, zero-entropy — or outside of it.
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:12px; padding-bottom:36px;">
+        <div class="path-card {{clientCls}}" onClick="{{selectClient}}">
+          <div style="display:flex; flex-direction:column; gap:4px;">
+            <div style="font-size:10.5px; letter-spacing:0.12em; color:var(--accent); font-weight:700;">CLIENT ENTRY</div>
+            <div style="font-size:15px; font-weight:700; color:#f0efe9;">Apply for Spatial Access</div>
+            <div style="font-size:12px; line-height:1.5; color:#a3a3a7;">Biomechanical screening & onboarding — determines who is permitted to train you.</div>
+          </div>
+        </div>
+        <div class="path-card {{guildCls}}" onClick="{{selectGuild}}">
+          <div style="display:flex; flex-direction:column; gap:4px;">
+            <div style="font-size:10.5px; letter-spacing:0.12em; color:var(--accent); font-weight:700;">FOUNDER ENTRY</div>
+            <div style="font-size:15px; font-weight:700; color:#f0efe9;">The Guild Console</div>
+            <div style="font-size:12px; line-height:1.5; color:#a3a3a7;">Manual override terminal — supply pressure, match latency, macro dials.</div>
+          </div>
+        </div>
+        <sc-if value="{{hasGuildHint}}" hint-placeholder-val="{{false}}">
+          <div style="text-align:center; font-size:11px; color:#6a6a6e; padding-top:4px;">{{guildHint}}</div>
+        </sc-if>
+        <sc-if value="{{noSelection}}" hint-placeholder-val="{{true}}">
+          <div style="text-align:center; font-size:10.5px; color:#4a4a4e; padding-top:4px;">Two entries into one system of truth →</div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ SCENE: SCREENING ============ -->
+  <sc-if value="{{isScreening}}" hint-placeholder-val="{{false}}">
+    <div style="display:flex; align-items:center; gap:14px; padding:20px 24px 10px 24px; height:26px; flex-shrink:0;">
+      <sc-if value="{{showBack}}" hint-placeholder-val="{{true}}">
+        <button onClick="{{goBack}}" style="background:none; border:none; padding:0; cursor:pointer; display:flex; align-items:center;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 5L8 12L15 19" stroke="#c9c9cc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </sc-if>
+      <sc-if value="{{showDots}}" hint-placeholder-val="{{true}}">
+        <div style="display:flex; gap:5px; flex-grow:1; justify-content:center; margin-right:18px;">
+          <sc-for list="{{dots}}" as="d" hint-placeholder-count="7">
+            <div class="dot {{d.cls}}"></div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="flex-grow:1; overflow-y:auto; padding:10px 24px 20px 24px;">
+
+      <sc-if value="{{isStep0}}" hint-placeholder-val="{{true}}">
+        <div style="display:flex; flex-direction:column; gap:26px; padding-top:14px;">
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div style="font-size:11px; letter-spacing:0.18em; color:var(--accent); font-weight:700;">GATE // SPATIAL ACCESS</div>
+            <div class="display" style="font-size:32px; line-height:1.12; font-weight:500; color:#f5f2ec;">The entry protocol for your physical chassis.</div>
+            <div style="font-size:13.5px; line-height:1.55; color:#a3a3a7;">Six checkpoints. No passive intake forms. This determines who is permitted to train you.</div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <div style="font-size:11px; letter-spacing:0.1em; color:#7c7c80; font-weight:700;">LINK YOUR LIFESTYLE GRAPH</div>
+            <button class="ghost-btn {{igCls}}" onClick="{{toggleIg}}" style="display:flex; align-items:center; justify-content:space-between;">
+              <span style="display:flex; align-items:center; gap:10px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.6"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor"/></svg>
+                {{igLabel}}
+              </span>
+              <span style="font-size:11px;">{{igStatus}}</span>
+            </button>
+            <button class="ghost-btn {{ttCls}}" onClick="{{toggleTt}}" style="display:flex; align-items:center; justify-content:space-between;">
+              <span style="display:flex; align-items:center; gap:10px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M14 4v9.2a3.6 3.6 0 1 1-2.6-3.46" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M14 4c.5 2.4 2.1 3.9 4.4 4.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                {{ttLabel}}
+              </span>
+              <span style="font-size:11px;">{{ttStatus}}</span>
+            </button>
+            <div style="font-size:11px; color:#5f5f63; line-height:1.5;">We read public lifestyle signal only — aesthetic graph, activity cadence, cohort tier. Optional, but it sharpens your match.</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isStep1}}" hint-placeholder-val="{{false}}">
+        <div style="display:flex; flex-direction:column; gap:20px; padding-top:10px;">
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="font-size:11px; letter-spacing:0.14em; color:var(--accent); font-weight:700;">01 — CORE OBJECTIVE</div>
+            <div class="display" style="font-size:22px; line-height:1.28; font-weight:500; color:#f5f2ec;">What is the baseline mission for your physical chassis?</div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <sc-for list="{{q1Options}}" as="opt" hint-placeholder-count="3">
+              <div class="opt-card {{opt.cls}}" onClick="{{opt.fn}}">
+                <div style="display:flex; gap:12px;">
+                  <div class="letter-tag">{{opt.letter}}</div>
+                  <div style="display:flex; flex-direction:column; gap:5px;">
+                    <div style="font-size:14px; font-weight:700; color:#f0efe9;">{{opt.title}}</div>
+                    <div style="font-size:12.5px; line-height:1.5; color:#a3a3a7;">{{opt.desc}}</div>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isStep2}}" hint-placeholder-val="{{false}}">
+        <div style="display:flex; flex-direction:column; gap:20px; padding-top:10px;">
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="font-size:11px; letter-spacing:0.14em; color:var(--accent); font-weight:700;">02 — COACHING PERSONA · THE VIBE CHECK</div>
+            <div class="display" style="font-size:22px; line-height:1.28; font-weight:500; color:#f5f2ec;">How do you mentally process elite coaching instructions?</div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <sc-for list="{{q2Options}}" as="opt" hint-placeholder-count="3">
+              <div class="opt-card {{opt.cls}}" onClick="{{opt.fn}}">
+                <div style="display:flex; gap:12px;">
+                  <div class="letter-tag">{{opt.letter}}</div>
+                  <div style="display:flex; flex-direction:column; gap:5px;">
+                    <div style="font-size:14px; font-weight:700; color:#f0efe9;">{{opt.title}}</div>
+                    <div style="font-size:12.5px; line-height:1.5; color:#a3a3a7;">{{opt.desc}}</div>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isStep3}}" hint-placeholder-val="{{false}}">
+        <div style="display:flex; flex-direction:column; gap:20px; padding-top:10px;">
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="font-size:11px; letter-spacing:0.14em; color:var(--accent); font-weight:700;">03 — SPONTANEITY & ENVIRONMENT</div>
+            <div class="display" style="font-size:22px; line-height:1.28; font-weight:500; color:#f5f2ec;">What is your operational booking profile?</div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <sc-for list="{{q3Options}}" as="opt" hint-placeholder-count="2">
+              <div class="opt-card {{opt.cls}}" onClick="{{opt.fn}}">
+                <div style="display:flex; gap:12px;">
+                  <div class="letter-tag">{{opt.letter}}</div>
+                  <div style="display:flex; flex-direction:column; gap:5px;">
+                    <div style="font-size:14px; font-weight:700; color:#f0efe9;">{{opt.title}}</div>
+                    <div style="font-size:12.5px; line-height:1.5; color:#a3a3a7;">{{opt.desc}}</div>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isStep4}}" hint-placeholder-val="{{false}}">
+        <div style="display:flex; flex-direction:column; gap:20px; padding-top:10px;">
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="font-size:11px; letter-spacing:0.14em; color:var(--accent); font-weight:700;">04 — BASELINE ASSESSMENT CHECK</div>
+            <div class="display" style="font-size:22px; line-height:1.28; font-weight:500; color:#f5f2ec;">Have you undergone a formal postural assessment, fitness test, or body composition analysis within the last 6 months?</div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <sc-for list="{{q4Options}}" as="opt" hint-placeholder-count="2">
+              <div class="opt-card {{opt.cls}}" onClick="{{opt.fn}}">
+                <div style="display:flex; gap:12px;">
+                  <div class="letter-tag">{{opt.letter}}</div>
+                  <div style="display:flex; flex-direction:column; gap:5px;">
+                    <div style="font-size:14px; font-weight:700; color:#f0efe9;">{{opt.title}}</div>
+                    <div style="font-size:12.5px; line-height:1.5; color:#a3a3a7;">{{opt.desc}}</div>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isStep5}}" hint-placeholder-val="{{false}}">
+        <div style="display:flex; flex-direction:column; gap:20px; padding-top:10px;">
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="font-size:11px; letter-spacing:0.14em; color:var(--accent); font-weight:700;">05 — GEOGRAPHIC ANCHOR</div>
+            <div class="display" style="font-size:22px; line-height:1.28; font-weight:500; color:#f5f2ec;">Where is your primary base of operations?</div>
+            <div style="font-size:12px; line-height:1.5; color:#a3a3a7;">This anchors you to our tightest physical nodes to prevent travel fatigue and preserve match speed.</div>
+          </div>
+          <input class="loc-input" type="text" value="{{location}}" onChange="{{onLocationChange}}" placeholder="e.g. Bangsar, KLCC, Klang Valley">
+          <div style="display:flex; flex-wrap:wrap; gap:8px;">
+            <sc-for list="{{locChips}}" as="chip" hint-placeholder-count="4">
+              <button class="chip {{chip.cls}}" onClick="{{chip.fn}}">{{chip.label}}</button>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isStep6}}" hint-placeholder-val="{{false}}">
+        <div style="display:flex; flex-direction:column; gap:20px; padding-top:10px;">
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="font-size:11px; letter-spacing:0.14em; color:var(--accent); font-weight:700;">06 — LIFESTYLE INTEGRATION · THE VIBE NODE</div>
+            <div class="display" style="font-size:22px; line-height:1.28; font-weight:500; color:#f5f2ec;">Select the environment that mirrors your standard daily discipline.</div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <sc-for list="{{q6Options}}" as="opt" hint-placeholder-count="3">
+              <div class="opt-card {{opt.cls}}" onClick="{{opt.fn}}">
+                <div style="display:flex; gap:12px;">
+                  <div class="letter-tag">{{opt.letter}}</div>
+                  <div style="display:flex; flex-direction:column; gap:5px;">
+                    <div style="font-size:14px; font-weight:700; color:#f0efe9;">{{opt.title}}</div>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isStep7}}" hint-placeholder-val="{{false}}">
+        <div style="display:flex; flex-direction:column; gap:18px; padding-top:10px;">
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="font-size:11px; letter-spacing:0.14em; color:var(--accent); font-weight:700;">SCREENING COMPLETE</div>
+            <div class="display" style="font-size:25px; line-height:1.2; font-weight:500; color:#f5f2ec;">You are inside the gate.</div>
+            <div style="font-size:12.5px; line-height:1.5; color:#a3a3a7;">This dossier now feeds the Guild match engine. Only instructors who clear your taxonomy and vibe thresholds will be permitted to accept you.</div>
+          </div>
+          <div class="mono" style="border:1px solid #2b2b2d; background:#101012; padding:16px; display:flex; flex-direction:column; gap:8px;">
+            <div style="font-size:10px; color:#6a6a6e; letter-spacing:0.08em;">CLIENT DOSSIER — INBOUND</div>
+            <div style="height:1px; background:#242427;"></div>
+            <div style="display:flex; flex-direction:column; gap:5px; font-size:10.8px;">
+              <div style="color:#9a9a9e;">TARGET TYPE <span style="color:var(--accent); float:right;">[{{targetTag}}]</span></div>
+              <div style="color:#9a9a9e;">VIBE PROFILE <span style="color:var(--accent); float:right;">[{{vibeTag}}]</span></div>
+              <div style="color:#9a9a9e;">BOOKING PROFILE <span style="color:var(--accent); float:right;">[{{bookingTag}}]</span></div>
+              <div style="color:#9a9a9e;">BASELINE STATUS <span style="color:var(--accent); float:right;">[{{baselineTag}}]</span></div>
+              <div style="color:#9a9a9e;">GEOGRAPHIC NODE <span style="color:var(--accent); float:right;">[{{geoTag}}]</span></div>
+              <div style="color:#9a9a9e;">LIFESTYLE NODE <span style="color:var(--accent); float:right;">[{{lifestyleTag}}]</span></div>
+              <div style="color:#9a9a9e;">SOCIAL LAYER <span style="color:{{socialColor}}; float:right;">{{socialStatus}}</span></div>
+            </div>
+          </div>
+          <button class="cta-btn" onClick="{{enterGate}}">Enter the Gate</button>
+        </div>
+      </sc-if>
+
+    </div>
+
+    <sc-if value="{{showFooter}}" hint-placeholder-val="{{true}}">
+      <div style="padding:14px 24px 24px 24px; border-top:1px solid #1c1c1e; flex-shrink:0;">
+        <button class="cta-btn {{continueCls}}" onClick="{{goNext}}">{{continueLabel}}</button>
+      </div>
+    </sc-if>
+  </sc-if>
+
+  <!-- ============ SCENE: WAITLIST ============ -->
+  <sc-if value="{{isWaitlist}}" hint-placeholder-val="{{false}}">
+    <div style="flex-grow:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px; padding:32px; text-align:center;">
+      <div class="display" style="font-size:15px; letter-spacing:0.1em; color:var(--accent); font-weight:500;">YOU'RE ON THE LIST</div>
+      <div style="font-size:56px; font-weight:700; color:#f5f2ec; line-height:1;" class="display">#{{waitlistPosition}}</div>
+      <div style="font-size:12.5px; color:#a3a3a7; line-height:1.6; max-width:260px;">in the {{geoTag}} queue. We're reviewing local coach availability right now{{waitDots}}<br>We'll text you the moment your hand-picked match is ready.</div>
+      <div style="font-size:11px; color:#6a6a6e; letter-spacing:0.04em;">{{liveApplicants}} applicants today ↑</div>
+    </div>
+  </sc-if>
+
+  <!-- ============ SCENE: UNLOCK — SMS NOTIF ============ -->
+  <sc-if value="{{isUnlockNotif}}" hint-placeholder-val="{{false}}">
+    <div style="flex-grow:1; display:flex; flex-direction:column; justify-content:center; gap:22px; padding:28px;">
+      <div style="font-size:11px; letter-spacing:0.14em; color:#6a6a6e; font-weight:700; text-align:center;">MESSAGES</div>
+      <div class="sms-banner" onClick="{{openApp}}">
+        <div style="width:34px; height:34px; border-radius:50%; background:var(--accent); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; color:#14110a;">G</div>
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          <div style="font-size:12.5px; font-weight:700; color:#f0efe9;">GATE</div>
+          <div style="font-size:13px; color:#d8d6d0; line-height:1.5;">{{verificationCode}} Unlocked. Tap to book your session with {{architect}}.</div>
+        </div>
+      </div>
+      <div style="text-align:center; font-size:11px; color:#4a4a4e;">Tap the message to open the app →</div>
+    </div>
+  </sc-if>
+
+  <!-- ============ SCENE: UNLOCK — SLOTS ============ -->
+  <sc-if value="{{isUnlockSlots}}" hint-placeholder-val="{{false}}">
+    <div style="flex-grow:1; display:flex; flex-direction:column; gap:20px; padding:28px 24px;">
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <div style="font-size:11px; letter-spacing:0.14em; color:var(--accent); font-weight:700;">{{verificationCode}} — MATCH UNLOCKED</div>
+        <div class="display" style="font-size:22px; font-weight:500; color:#f5f2ec;">Book your session with {{architect}}.</div>
+        <div style="font-size:12.5px; color:#a3a3a7;">{{geoTag}} · Reformer Pilates specialist</div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <sc-for list="{{slots}}" as="slot" hint-placeholder-count="4">
+          <div class="slot {{slot.cls}}" onClick="{{slot.fn}}">
+            <span style="font-size:13.5px; font-weight:700; color:#f0efe9;">{{slot.label}}</span>
+            <span style="font-size:11px; color:#6a6a6e;">{{slot.sub}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <button class="cta-btn {{confirmCls}}" onClick="{{confirmBooking}}" style="margin-top:auto;">Confirm Booking</button>
+    </div>
+  </sc-if>
+
+  <!-- ============ SCENE: UNLOCK — CONFIRMED ============ -->
+  <sc-if value="{{isUnlockConfirmed}}" hint-placeholder-val="{{false}}">
+    <div style="flex-grow:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:32px; text-align:center;">
+      <div style="font-size:26px; color:var(--accent);">✓</div>
+      <div class="display" style="font-size:22px; font-weight:500; color:#f5f2ec;">Session booked.</div>
+      <div style="font-size:12.5px; color:#a3a3a7; line-height:1.6;">{{selectedSlotLabel}} with {{architect}} · {{geoTag}}.<br>After your evaluation, GATE generates your System Output card.</div>
+      <button class="cta-btn" onClick="{{goToStory}}" style="margin-top:12px;">Simulate: after your session →</button>
+    </div>
+  </sc-if>
+
+  <!-- ============ SCENE: STORY CARD ============ -->
+  <sc-if value="{{isStory}}" hint-placeholder-val="{{false}}">
+    <div class="mono" style="flex-grow:1; background:radial-gradient(120% 90% at 50% -10%, #17150f 0%, #0a0906 60%); color:#efeade; display:flex; flex-direction:column; padding:26px 24px; position:relative; overflow:hidden;">
+      <div style="position:absolute; inset:0; opacity:0.5; background-image:linear-gradient(rgba(201,167,105,0.05) 1px, transparent 1px); background-size: 100% 28px; pointer-events:none;"></div>
+
+      <div style="display:flex; justify-content:space-between; align-items:baseline; position:relative;">
+        <div class="display" style="font-size:13px; letter-spacing:0.14em; color:#f5f2ec;">GATE <span class="mono" style="color:#5c584c; font-size:10.5px; letter-spacing:0.08em;">// SYSTEM OUTPUT</span></div>
+        <div style="font-size:10px; color:#7c7867; letter-spacing:0.08em;">NODE: {{nodeTag}}</div>
+      </div>
+
+      <div class="rule" style="margin:16px 0 14px 0;"></div>
+      <div class="section-tag">METRIC BLOCK // STRUCTURAL GOVERNANCE LOG</div>
+
+      <div style="display:flex; flex-direction:column; gap:6px; margin-top:12px;">
+        <div class="row"><span class="k">CLIENT</span><span class="v">{{clientName}}</span></div>
+        <div class="row"><span class="k">ARCHITECT</span><span class="v">{{architect}}</span></div>
+        <div class="row"><span class="k">MODALITY</span><span class="v">REFORMER PILATES // AXIAL LOAD</span></div>
+      </div>
+
+      <div class="rule" style="margin:18px 0;"></div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div class="section-tag">[ LOAD CONFIGURATION ]</div>
+        <div class="row"><span class="k">APPARATUS</span><span class="v">REFORMER + TOWER SYSTEM</span></div>
+        <div class="row"><span class="k">MAX CORE</span><span class="v">1 RED + 1 BLUE SPRING RESISTANCE</span></div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px; margin-top:18px;">
+        <div class="section-tag">[ KINETIC FOCUS ]</div>
+        <div class="row"><span class="k">PRIMARY</span><span class="v">POSTERIOR CHAIN RECRUITMENT</span></div>
+        <div class="row"><span class="k">BIOMECH</span><span class="v">{{biomechTag}}</span></div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px; margin-top:18px;">
+        <div class="section-tag">[ PERFORMANCE INDEX ]</div>
+        <div class="row"><span class="k">EXECUTION</span><span class="v" style="color:var(--accent);">8.0 / 10.0 ARCHITECT COMPLIANCE</span></div>
+        <div class="row"><span class="k">STATUS</span><span class="v">TRACKING // HEALTH MATRIX VERIFIED</span></div>
+      </div>
+
+      <div style="flex-grow:1;"></div>
+
+      <div class="rule" style="margin-bottom:14px;"></div>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="font-size:10px; color:#7c7867; letter-spacing:0.06em;">VERIFICATION CODE: <span style="color:var(--accent); font-weight:700;">{{fullVerificationCode}}</span></div>
+        <div style="font-size:9px; letter-spacing:0.1em; color:#5c584c; border:1px solid #2e2b22; padding:4px 8px;">POWERED BY GATE</div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#c9a769","options":["#c9a769","#8f9779","#b0523f","#d8d3c6"]},"clientName":{"editor":"text","default":"Tan Qing Wen"},"architect":{"editor":"text","default":"Coach D"}}'>
+class Component extends DCLogic {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      scene: 'entry',
+      picked: null,
+      qStep: 0,
+      ig: false,
+      tt: false,
+      location: '',
+      answers: { q1: null, q2: null, q3: null, q4: null, q6: null },
+      waitlistPosition: 47,
+      liveApplicants: 812,
+      tick: 0,
+      selectedSlot: null
+    };
+  }
+
+  componentDidMount() {
+    this._interval = setInterval(() => {
+      if (this.state.scene === 'waitlist') {
+        this.setState(prev => {
+          const nextTick = prev.tick + 1;
+          if (nextTick >= 3) {
+            return { tick: 0, scene: 'unlockNotif' };
+          }
+          return { liveApplicants: prev.liveApplicants + (Math.random() < 0.5 ? 1 : 0), tick: nextTick };
+        });
+      }
+    }, 2200);
+  }
+
+  componentWillUnmount() {
+    if (this._interval) clearInterval(this._interval);
+  }
+
+  // entry
+  selectClient() { this.setState({ picked: 'client' }); setTimeout(() => this.setState({ scene: 'screening' }), 220); }
+  selectGuild() { this.setState({ picked: 'guild' }); }
+
+  // screening
+  goNext() {
+    const s = this.state;
+    if (s.qStep === 1 && !s.answers.q1) return;
+    if (s.qStep === 2 && !s.answers.q2) return;
+    if (s.qStep === 3 && !s.answers.q3) return;
+    if (s.qStep === 4 && !s.answers.q4) return;
+    if (s.qStep === 5 && !s.location) return;
+    if (s.qStep === 6 && !s.answers.q6) return;
+    this.setState(prev => ({ qStep: Math.min(7, prev.qStep + 1) }));
+  }
+  goBack() { this.setState(prev => ({ qStep: Math.max(0, prev.qStep - 1) })); }
+  select(qKey, letter) { this.setState(prev => ({ answers: { ...prev.answers, [qKey]: letter } })); }
+  toggleIg() { this.setState(prev => ({ ig: !prev.ig })); }
+  toggleTt() { this.setState(prev => ({ tt: !prev.tt })); }
+  setLocation(val) { this.setState({ location: val }); }
+  enterGate() { this.setState({ scene: 'waitlist', waitlistPosition: 46 + Math.floor(Math.random() * 6), liveApplicants: 812, tick: 0 }); }
+
+  // unlock
+  openApp() { this.setState({ scene: 'unlockSlots' }); }
+  pickSlot(label) { this.setState({ selectedSlot: label }); }
+  confirmBooking() { if (this.state.selectedSlot) this.setState({ scene: 'unlockConfirmed' }); }
+  goToStory() { this.setState({ scene: 'story' }); }
+
+  restart() {
+    this.setState({
+      scene: 'entry', picked: null, qStep: 0, ig: false, tt: false, location: '',
+      answers: { q1: null, q2: null, q3: null, q4: null, q6: null },
+      tick: 0, selectedSlot: null
+    });
+  }
+
+  renderVals() {
+    const s = this.state;
+
+    const Q1 = [
+      { letter: 'A', key: 'A', title: 'Precision Athletic Resilience', desc: 'I train for competitive events like Hyrox or tactical performance and need strict kinetic efficiency.', tag: 'HYROX / TACTICAL PERFORMANCE' },
+      { letter: 'B', key: 'B', title: 'Absolute Structural Governance', desc: 'I need precision biomechanics, deep core spring tension calibration, and postural optimization like STOTT Pilates.', tag: 'STOTT PILATES / STRUCTURAL' },
+      { letter: 'C', key: 'C', title: 'Dynamic Recovery & Maintenance', desc: 'I need elite mobility, injury mitigation, and highly managed physical output.', tag: 'MOBILITY / RECOVERY PROTOCOL' }
+    ];
+    const Q2 = [
+      { letter: 'A', key: 'A', title: 'The Clinical Scientist', desc: 'Give me strict anatomic angles, biomechanical taxonomy, and precise tracking metrics.', tag: 'CLINICAL / ANALYTICAL' },
+      { letter: 'B', key: 'B', title: 'The Unyielding Driver', desc: 'Push my thresholds, create high-energy physical tension, and hold me accountable to absolute failure.', tag: 'HIGH-PERFORMANCE / DRIVER' },
+      { letter: 'C', key: 'C', title: 'The Collaborative Strategist', desc: 'Walk me through the programming rationale, co-create the session intention, and focus on steady execution.', tag: 'COLLABORATIVE / STRATEGIC' }
+    ];
+    const Q3 = [
+      { letter: 'A', key: 'A', title: 'The Structured Regular', desc: 'I anchor my week around fixed, repeatable time slots.', tag: 'STRUCTURED REGULAR' },
+      { letter: 'B', key: 'B', title: 'The Tactical Soloist', desc: 'I move spontaneously. I need elite 1:1 sessions booked on short notice, outside traditional studio blocks, wherever I am.', tag: 'TACTICAL SOLOIST / ON-DEMAND' }
+    ];
+    const Q4 = [
+      { letter: 'A', key: 'A', title: 'Yes — baseline metrics on file', desc: 'Up-to-date postural, fitness, or body-composition data. We’ll ask you to upload or log it next.', tag: 'BASELINE ON FILE' },
+      { letter: 'B', key: 'B', title: 'No — moving without a baseline', desc: 'You’ll be flagged for an immediate physical evaluation priority match.', tag: 'PRIORITY EVAL FLAGGED' }
+    ];
+    const Q6 = [
+      { letter: 'A', key: 'A', title: 'High-performance athletic training / Hyrox tracking', tag: 'HIGH-PERFORMANCE / HYROX' },
+      { letter: 'B', key: 'B', title: 'Precision rehabilitation, mobility, and clinical alignment', tag: 'CLINICAL / REHAB' },
+      { letter: 'C', key: 'C', title: 'High-stress corporate optimization (tight, unpredictable schedules)', tag: 'CORPORATE / ON-DEMAND' }
+    ];
+    const NODES = ['Bangsar', 'KLCC', 'Mont Kiara', 'Petaling Jaya'];
+    const SLOTS = [
+      { label: 'Tomorrow · 7:00 AM', sub: '60 min' },
+      { label: 'Tomorrow · 6:30 PM', sub: '60 min' },
+      { label: 'Thu · 8:00 AM', sub: '60 min' },
+      { label: 'Fri · 5:00 PM', sub: '60 min' }
+    ];
+
+    const buildOptions = (list, qKey) => list.map(o => ({
+      letter: o.letter, title: o.title, desc: o.desc || '',
+      cls: s.answers[qKey] === o.key ? 'selected' : '',
+      fn: () => this.select(qKey, o.key)
+    }));
+    const findTag = (list, letter) => { const f = list.find(o => o.key === letter); return f ? f.tag : '—'; };
+    const dotState = (idx) => { if (s.qStep > idx) return 'done'; if (s.qStep === idx) return 'current'; return ''; };
+    const socialCount = (s.ig ? 1 : 0) + (s.tt ? 1 : 0);
+    const geoTag = s.location ? s.location.toUpperCase() : '—';
+
+    // stage strip: 1 apply, 2 screen, 3 unlock, 4 story
+    let stageIdx = 1;
+    if (s.scene === 'screening' || s.scene === 'waitlist') stageIdx = 2;
+    if (s.scene === 'unlockNotif' || s.scene === 'unlockSlots' || s.scene === 'unlockConfirmed') stageIdx = 3;
+    if (s.scene === 'story') stageIdx = 4;
+    const stages = [1, 2, 3, 4].map(i => ({ color: i <= stageIdx ? this.props.accent ?? '#c9a769' : '#242427' }));
+
+    return {
+      accent: this.props.accent ?? '#c9a769',
+      clientName: this.props.clientName ?? 'Tan Qing Wen',
+      architect: this.props.architect ?? 'Coach D',
+      stages,
+
+      showRestart: s.scene !== 'entry',
+      restart: () => this.restart(),
+
+      isEntry: s.scene === 'entry',
+      isScreening: s.scene === 'screening',
+      isWaitlist: s.scene === 'waitlist',
+      isUnlockNotif: s.scene === 'unlockNotif',
+      isUnlockSlots: s.scene === 'unlockSlots',
+      isUnlockConfirmed: s.scene === 'unlockConfirmed',
+      isStory: s.scene === 'story',
+
+      // entry
+      clientCls: s.picked === 'client' ? 'selected' : '',
+      guildCls: s.picked === 'guild' ? 'selected' : '',
+      selectClient: () => this.selectClient(),
+      selectGuild: () => this.selectGuild(),
+      hasGuildHint: s.picked === 'guild',
+      noSelection: !s.picked,
+      guildHint: 'Guild Console selected — that\'s a separate founder tool on the canvas ↓',
+
+      // screening
+      showBack: s.qStep > 0 && s.qStep < 7,
+      showDots: s.qStep < 7,
+      showFooter: s.qStep < 7,
+      dots: [0, 1, 2, 3, 4, 5, 6].map(i => ({ cls: dotState(i) })),
+      isStep0: s.qStep === 0, isStep1: s.qStep === 1, isStep2: s.qStep === 2, isStep3: s.qStep === 3,
+      isStep4: s.qStep === 4, isStep5: s.qStep === 5, isStep6: s.qStep === 6, isStep7: s.qStep === 7,
+
+      igLabel: 'Instagram', igStatus: s.ig ? 'LINKED' : 'CONNECT', igCls: s.ig ? 'connected' : '', toggleIg: () => this.toggleIg(),
+      ttLabel: 'TikTok', ttStatus: s.tt ? 'LINKED' : 'CONNECT', ttCls: s.tt ? 'connected' : '', toggleTt: () => this.toggleTt(),
+
+      q1Options: buildOptions(Q1, 'q1'),
+      q2Options: buildOptions(Q2, 'q2'),
+      q3Options: buildOptions(Q3, 'q3'),
+      q4Options: buildOptions(Q4, 'q4'),
+      q6Options: buildOptions(Q6, 'q6'),
+
+      location: s.location,
+      onLocationChange: (e) => this.setLocation(e.target.value),
+      locChips: NODES.map(n => ({ label: n, cls: s.location === n ? 'selected' : '', fn: () => this.setLocation(n) })),
+
+      continueLabel: s.qStep === 0 ? 'Begin Screening' : (s.qStep === 6 ? 'Lock Profile' : 'Continue'),
+      continueCls: (
+        (s.qStep === 1 && !s.answers.q1) || (s.qStep === 2 && !s.answers.q2) || (s.qStep === 3 && !s.answers.q3) ||
+        (s.qStep === 4 && !s.answers.q4) || (s.qStep === 5 && !s.location) || (s.qStep === 6 && !s.answers.q6)
+      ) ? 'disabled' : '',
+      goNext: () => this.goNext(),
+      goBack: () => this.goBack(),
+
+      targetTag: findTag(Q1, s.answers.q1),
+      vibeTag: findTag(Q2, s.answers.q2),
+      bookingTag: findTag(Q3, s.answers.q3),
+      baselineTag: findTag(Q4, s.answers.q4),
+      geoTag,
+      lifestyleTag: findTag(Q6, s.answers.q6),
+      socialStatus: socialCount > 0 ? (socialCount === 2 ? 'DUAL-VERIFIED' : 'PARTIALLY VERIFIED') : 'NOT LINKED',
+      socialColor: socialCount > 0 ? 'var(--accent)' : '#6a6a6e',
+      enterGate: () => this.enterGate(),
+
+      // waitlist
+      waitlistPosition: s.waitlistPosition,
+      liveApplicants: s.liveApplicants,
+      waitDots: '.'.repeat((s.tick % 3) + 1),
+
+      // unlock
+      verificationCode: 'GATE-4029',
+      fullVerificationCode: 'GATE-4029-KUL',
+      nodeTag: geoTag === '—' ? 'KUL' : geoTag,
+      openApp: () => this.openApp(),
+      slots: SLOTS.map(sl => ({ label: sl.label, sub: sl.sub, cls: s.selectedSlot === sl.label ? 'selected' : '', fn: () => this.pickSlot(sl.label) })),
+      confirmCls: s.selectedSlot ? '' : 'disabled',
+      confirmBooking: () => this.confirmBooking(),
+      selectedSlotLabel: s.selectedSlot || '',
+      goToStory: () => this.goToStory(),
+
+      // story
+      biomechTag: 'POSTURAL DEVIATION RECOGNITION / ACTIVATED'
+    };
+  }
+}
+</script>
+</body>
+</html>

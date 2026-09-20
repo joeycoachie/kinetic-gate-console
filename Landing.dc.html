@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,500;0,600;1,400&family=Manrope:wght@400;500;600;700;800&display=swap');
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    .land { font-family: 'Manrope', ui-sans-serif, system-ui, sans-serif; }
+    .land .display { font-family: 'Bodoni Moda', Georgia, serif; }
+    a, a:hover { color: var(--accent); }
+
+    .cta-btn { font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 0.06em; text-transform: uppercase; padding: 18px 34px; border: 1px solid var(--accent); background: var(--accent); color: #14110a; cursor: pointer; }
+    .cta-btn:hover { filter: brightness(1.06); }
+    .cta-btn:active { transform: translateY(1px); }
+
+    .step-card { border: 1px solid #242018; background: #121009; padding: 26px; display: flex; flex-direction: column; gap: 12px; }
+  </style>
+</helmet>
+
+<div style="--accent:{{accent}}; width:1440px; background:#0b0a08; color:#e9e7e2; display:flex; flex-direction:column;" class="land">
+
+  <!-- NAV -->
+  <div style="display:flex; align-items:center; justify-content:space-between; padding:28px 64px;">
+    <div class="display" style="font-size:16px; letter-spacing:0.22em; color:#f5f2ec; font-weight:500;">KINETIC GATE</div>
+    <div style="font-size:11px; letter-spacing:0.1em; color:#6a6a6e;">PRIVATE WAITLIST — KLANG VALLEY</div>
+  </div>
+
+  <!-- HERO -->
+  <div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:26px; padding:64px 120px 88px 120px;">
+    <div style="font-size:11px; letter-spacing:0.18em; color:var(--accent); font-weight:700;">GATE // SPATIAL ACCESS</div>
+    <div class="display" style="font-size:48px; line-height:1.18; font-weight:500; color:#f5f2ec; max-width:820px;">Find an elite personal Pilates or fitness coach who actually understands your body.</div>
+    <div style="font-size:15.5px; line-height:1.65; color:#a3a3a7; max-width:560px;">No generic gym routines. No confusing studio schedules. Tell us your goals and your location, and we will manually hand-pick your perfect private coach. Join our private waitlist to secure your spot.</div>
+    <button class="cta-btn" style="margin-top:8px;">Claim My Free Evaluation Spot</button>
+  </div>
+
+  <!-- WHAT HAPPENS NEXT -->
+  <div style="display:flex; flex-direction:column; gap:28px; padding:0 120px 96px 120px;">
+    <div style="font-size:11px; letter-spacing:0.14em; color:#6a6a6e; font-weight:700; text-align:center;">WHAT HAPPENS WHEN YOU CLICK</div>
+    <div style="display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:20px;">
+
+      <div class="step-card">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z" stroke="{{accent}}" stroke-width="1.6"/><circle cx="12" cy="9" r="2.4" stroke="{{accent}}" stroke-width="1.6"/></svg>
+        <div style="font-size:14.5px; font-weight:700; color:#f0efe9;">Tell us where you train</div>
+        <div style="font-size:12.5px; line-height:1.55; color:#a3a3a7;">Type your neighborhood — Bangsar, Mont Kiara, KLCC — and we lock the exact node so travel never eats your match speed.</div>
+      </div>
+
+      <div class="step-card">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4L19 6" stroke="{{accent}}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div style="font-size:14.5px; font-weight:700; color:#f0efe9;">A 60-second baseline check</div>
+        <div style="font-size:12.5px; line-height:1.55; color:#a3a3a7;">Tell us if you've had a posture check, fitness test, or body composition scan in the last 6 months — no scan yet gets priority evaluation.</div>
+      </div>
+
+      <div class="step-card">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="{{accent}}" stroke-width="1.6"/><path d="M12 8v4l3 2" stroke="{{accent}}" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <div style="font-size:14.5px; font-weight:700; color:#f0efe9;">Pick your coaching style</div>
+        <div style="font-size:12.5px; line-height:1.55; color:#a3a3a7;">The Scientist, The Driver, or The Strategist — we hand-pick your architect from the Guild to match how you actually move best.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div style="display:flex; justify-content:center; padding:0 0 56px 0;">
+    <div style="font-size:10.5px; letter-spacing:0.1em; color:#4a4a4e;">GATE // THE GUILD — YOU ARE EITHER INSIDE, OR YOU AREN'T.</div>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#c9a769","options":["#c9a769","#8f9779","#b0523f","#d8d3c6"]}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { accent: this.props.accent ?? '#c9a769' };
+  }
+}
+</script>
+</body>
+</html>

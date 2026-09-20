@@ -1,0 +1,315 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,500&family=Manrope:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    .guild { font-family: 'Manrope', ui-sans-serif, system-ui, sans-serif; }
+    .guild .display { font-family: 'Bodoni Moda', Georgia, serif; }
+    .guild .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    a, a:hover { color: var(--accent); }
+    .guild ::-webkit-scrollbar { width: 0; height: 0; }
+
+    @keyframes pulseRing { 0% { box-shadow: 0 0 0 0 rgba(201,167,105,0.4); } 100% { box-shadow: 0 0 0 22px rgba(201,167,105,0); } }
+    .pulse { animation: pulseRing 1.6s ease-out infinite; }
+
+    .accept-btn { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; padding: 16px 20px; border: 1px solid var(--accent); background: var(--accent); color: #14110a; cursor: pointer; text-align: center; }
+    .decline-btn { font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 12.5px; letter-spacing: 0.04em; padding: 14px 20px; border: 1px solid #34343a; background: transparent; color: #9a9a9e; cursor: pointer; text-align: center; }
+    .decline-btn:hover { border-color: #f87171; color: #f87171; }
+
+    .snap-row { display: flex; justify-content: space-between; font-size: 13px; padding: 9px 0; border-bottom: 1px solid #232327; }
+    .snap-row .k { color: #6a6a6e; }
+    .snap-row .v { color: #e9e7e2; font-weight: 600; }
+
+    .flag { display: inline-flex; padding: 3px 8px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em; border: 1px solid #6e2323; color: #f87171; background: rgba(248,113,113,0.08); }
+
+    .sec { border: 1px solid #242830; background: #121419; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+    .sec-head { display: flex; justify-content: space-between; align-items: baseline; }
+    .sec-title { font-size: 11px; font-weight: 800; letter-spacing: 0.04em; color: #d7dbe4; }
+    .sec-time { font-size: 10px; color: #5b6272; }
+
+    .tap { border: 1px solid #333947; background: #14161b; color: #c9cdd6; font-family: inherit; font-size: 11.5px; font-weight: 700; padding: 10px 12px; cursor: pointer; text-align: center; }
+    .tap:hover { border-color: var(--accent); }
+    .tap.selected { border-color: var(--accent); background: #241d0f; color: var(--accent); }
+    .tap-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .num-btn { width: 26px; height: 26px; border: 1px solid #333947; background: #14161b; color: #9aa0ac; font-family: inherit; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .num-btn.selected { border-color: var(--accent); background: var(--accent); color: #0a0b0d; }
+
+    .seq-input { font-family: inherit; font-size: 12px; background: #0d0e11; border: 1px solid #2a2e38; color: #d7dbe4; padding: 9px 10px; width: 100%; outline: none; }
+    .seq-input:focus { border-color: var(--accent); }
+
+    .slide-bar { position: relative; height: 52px; border: 1px solid var(--accent); background: #14161b; overflow: hidden; cursor: pointer; }
+    .slide-fill { position: absolute; inset: 0; background: var(--accent); transition: width 0.6s ease; }
+    .slide-label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; letter-spacing: 0.05em; z-index: 2; }
+
+    .restart-btn { position: absolute; top: 12px; right: 14px; z-index: 5; font-family: 'Manrope', sans-serif; font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; color: #55565c; background: none; border: none; cursor: pointer; padding: 6px; }
+    .restart-btn:hover { color: var(--accent); }
+  </style>
+</helmet>
+
+<div style="--accent:{{accent}}; width:390px; height:844px; background:#0b0b0c; color:#e9e7e2; display:flex; flex-direction:column; overflow:hidden; position:relative;" class="guild">
+
+  <!-- STAGE PROGRESS STRIP -->
+  <div style="display:flex; gap:3px; flex-shrink:0;">
+    <sc-for list="{{stages}}" as="st" hint-placeholder-count="2">
+      <div style="flex-grow:1; height:3px; background:{{st.color}};"></div>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{showRestart}}" hint-placeholder-val="{{false}}">
+    <button class="restart-btn" onClick="{{restart}}">↺ Restart</button>
+  </sc-if>
+
+  <!-- ============ SCENE: INCOMING MATCH ============ -->
+  <sc-if value="{{isIncoming}}" hint-placeholder-val="{{true}}">
+    <div style="flex-grow:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:28px; padding:32px;">
+      <div style="font-size:11px; letter-spacing:0.18em; color:var(--accent); font-weight:700;">GATE TRIPWIRE CALL</div>
+      <div class="pulse" style="width:88px; height:88px; border-radius:50%; border:1px solid var(--accent); display:flex; align-items:center; justify-content:center;">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1.1-.2 1.2.4 2.5.6 3.8.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.7 21 3 13.3 3 4c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.6.6 3.8.1.4 0 .8-.2 1.1L6.6 10.8z" stroke="var(--accent)" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="display" style="font-size:20px; font-weight:500; text-align:center; color:#f5f2ec;">Premium Match Available in {{location}}</div>
+      <div style="width:100%; display:flex; flex-direction:column; gap:2px; border:1px solid #242427; background:#141416; padding:16px 18px;">
+        <div class="snap-row"><span class="k">CLIENT</span><span class="v">{{clientName}}</span></div>
+        <div class="snap-row"><span class="k">LOCATION</span><span class="v">{{location}}</span></div>
+        <div class="snap-row"><span class="k">VIBE</span><span class="v">{{vibe}}</span></div>
+        <div class="snap-row" style="border-bottom:none;"><span class="k">ASSESSMENT</span><span class="flag">{{assessmentFlag}}</span></div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px; width:100%;">
+        <button class="accept-btn" onClick="{{accept}}">Accept Match</button>
+        <button class="decline-btn" onClick="{{decline}}">Decline</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ SCENE: ACCEPTED ============ -->
+  <sc-if value="{{isAccepted}}" hint-placeholder-val="{{false}}">
+    <div style="flex-grow:1; display:flex; flex-direction:column; gap:24px; padding:40px 28px;">
+      <div style="display:flex; flex-direction:column; gap:10px; align-items:center; text-align:center;">
+        <div style="font-size:26px; color:var(--accent);">✓</div>
+        <div class="display" style="font-size:22px; font-weight:500; color:#f5f2ec;">Match accepted.</div>
+        <div style="font-size:12.5px; color:#a3a3a7; line-height:1.55;">{{clientName}}'s credits are now locked in platform escrow. Funds release once you submit the session log.</div>
+      </div>
+      <div style="border:1px solid #242427; background:#141416; padding:16px 18px; display:flex; flex-direction:column; gap:2px;">
+        <div class="snap-row"><span class="k">CLIENT</span><span class="v">{{clientName}}</span></div>
+        <div class="snap-row"><span class="k">LOCATION</span><span class="v">{{location}}</span></div>
+        <div class="snap-row" style="border-bottom:none;"><span class="k">STATUS</span><span class="v" style="color:var(--accent);">ESCROW LOCKED</span></div>
+      </div>
+      <button class="accept-btn" onClick="{{startLog}}" style="margin-top:auto;">Session done — log it →</button>
+    </div>
+  </sc-if>
+
+  <!-- ============ SCENE: DECLINED ============ -->
+  <sc-if value="{{isDeclined}}" hint-placeholder-val="{{false}}">
+    <div style="flex-grow:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:32px; text-align:center;">
+      <div class="display" style="font-size:20px; font-weight:500; color:#d8d6d0;">Match declined.</div>
+      <div style="font-size:12.5px; color:#a3a3a7;">Routed back to the Founder Terminal for reassignment.</div>
+    </div>
+  </sc-if>
+
+  <!-- ============ SCENE: SESSION LOG FORM ============ -->
+  <sc-if value="{{isLogging}}" hint-placeholder-val="{{false}}">
+    <div class="mono" style="display:flex; flex-direction:column; flex-grow:1; overflow:hidden;">
+      <div style="padding:16px 18px 12px 18px; border-bottom:1px solid #242830; flex-shrink:0;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline;">
+          <span style="font-size:12px; font-weight:800; letter-spacing:0.06em; color:var(--accent);">GATE // THE GUILD</span>
+          <span style="font-size:11px; color:#6b7280;">{{clock}}</span>
+        </div>
+        <div style="font-size:14px; font-weight:700; color:#e6e9ef; margin-top:4px;">SESSION LOG: {{clientName}}</div>
+      </div>
+
+      <div style="flex-grow:1; overflow-y:auto; padding:14px 18px; display:flex; flex-direction:column; gap:12px;">
+        <div class="sec">
+          <div class="sec-head"><span class="sec-title">STEP 1 — APPARATUS USED (tap all that apply)</span><span class="sec-time">[3s]</span></div>
+          <div class="tap-grid">
+            <sc-for list="{{apparatusOptions}}" as="opt" hint-placeholder-count="5">
+              <button class="tap {{opt.cls}}" onClick="{{opt.fn}}">{{opt.label}}</button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div class="sec">
+          <div class="sec-head"><span class="sec-title">STEP 2 — MAX SPRING TENSION (tap highest load)</span><span class="sec-time">[5s]</span></div>
+          <div class="tap-grid">
+            <sc-for list="{{tensionOptions}}" as="opt" hint-placeholder-count="5">
+              <button class="tap {{opt.cls}}" onClick="{{opt.fn}}">{{opt.label}}</button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div class="sec">
+          <div class="sec-head"><span class="sec-title">STEP 3 — KINETIC DEVIATIONS (tap anomalies)</span><span class="sec-time">[7s]</span></div>
+          <div class="tap-grid">
+            <sc-for list="{{deviationOptions}}" as="opt" hint-placeholder-count="5">
+              <button class="tap {{opt.cls}}" onClick="{{opt.fn}}">{{opt.label}}</button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div class="sec">
+          <div class="sec-head"><span class="sec-title">STEP 4 — SAVE TO MY SEQUENCES</span><span class="sec-time">[5s]</span></div>
+          <button class="tap {{saveCls}}" onClick="{{toggleSave}}" style="text-align:left;">{{saveLabel}}</button>
+          <sc-if value="{{saveSequence}}" hint-placeholder-val="{{false}}">
+            <input class="seq-input" type="text" value="{{sequenceName}}" onChange="{{onSeqNameChange}}" placeholder="Bangsar Core Flow v1">
+          </sc-if>
+        </div>
+
+        <div class="sec">
+          <div class="sec-head"><span class="sec-title">STEP 5 — CLIENT PERFORMANCE SCORE</span><span class="sec-time">[3s]</span></div>
+          <div style="display:flex; align-items:center; gap:6px; justify-content:center;">
+            <sc-for list="{{scoreOptions}}" as="opt" hint-placeholder-count="10">
+              <button class="num-btn {{opt.cls}}" onClick="{{opt.fn}}">{{opt.n}}</button>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:14px 18px 24px 18px; border-top:1px solid #1c1f27; flex-shrink:0;">
+        <div class="slide-bar" onClick="{{onSlideClick}}">
+          <div class="slide-fill" style="width:{{slideFillPct}}%;"></div>
+          <div class="slide-label" style="color:{{slideLabelColor}};">{{slideLabel}}</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ SCENE: LOGGED / COMPLETE ============ -->
+  <sc-if value="{{isLogged}}" hint-placeholder-val="{{false}}">
+    <div class="mono" style="flex-grow:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:32px;">
+      <div style="font-size:28px; color:#34d399;">✓</div>
+      <div style="font-size:14px; font-weight:800; color:#e6e9ef; text-align:center;">SESSION LOGGED — ESCROW RELEASED</div>
+      <div style="font-size:12px; color:#9aa0ac; text-align:center; line-height:1.6;">+${{payout}} credited to your balance.<br>{{clientName}}'s dossier updated with this session's taxonomy.</div>
+      <button class="tap" style="margin-top:10px; padding:10px 18px;" onClick="{{restart}}">Back to matches</button>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#c9a769","options":["#c9a769","#8f9779","#b0523f","#d8d3c6"]},"clientName":{"editor":"text","default":"Tan Qing Wen"},"location":{"editor":"text","default":"Bangsar"}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      scene: 'incoming',
+      apparatus: [],
+      tension: null,
+      deviations: [],
+      saveSequence: false,
+      sequenceName: 'Bangsar Core Flow v1',
+      score: 8,
+      completing: false
+    };
+  }
+
+  accept() { this.setState({ scene: 'accepted' }); }
+  decline() { this.setState({ scene: 'declined' }); }
+  startLog() { this.setState({ scene: 'logging' }); }
+  restart() {
+    this.setState({
+      scene: 'incoming', apparatus: [], tension: null, deviations: [], saveSequence: false,
+      sequenceName: 'Bangsar Core Flow v1', score: 8, completing: false
+    });
+  }
+
+  toggle(listKey, value) {
+    this.setState(prev => {
+      const list = prev[listKey];
+      const has = list.includes(value);
+      return { [listKey]: has ? list.filter(v => v !== value) : [...list, value] };
+    });
+  }
+
+  toggleDeviation(value) {
+    this.setState(prev => {
+      if (value === 'None / Perfectly Aligned') {
+        return { deviations: prev.deviations.includes(value) ? [] : ['None / Perfectly Aligned'] };
+      }
+      const withoutNone = prev.deviations.filter(v => v !== 'None / Perfectly Aligned');
+      const has = withoutNone.includes(value);
+      return { deviations: has ? withoutNone.filter(v => v !== value) : [...withoutNone, value] };
+    });
+  }
+
+  setTension(v) { this.setState({ tension: v }); }
+  toggleSave() { this.setState(prev => ({ saveSequence: !prev.saveSequence })); }
+  onSeqNameChange(e) { this.setState({ sequenceName: e.target.value }); }
+  setScore(n) { this.setState({ score: n }); }
+
+  onSlideClick() {
+    const s = this.state;
+    if (s.completing || s.scene === 'logged') return;
+    if (s.apparatus.length === 0 || !s.tension || s.deviations.length === 0) return;
+    this.setState({ completing: true });
+    setTimeout(() => this.setState({ completing: false, scene: 'logged' }), 650);
+  }
+
+  renderVals() {
+    const s = this.state;
+    const APPARATUS = ['REFORMER', 'TOWER', 'CHAIR', 'BARREL', 'MAT'];
+    const TENSION = ['1 RED', '1 GREEN', '1 BLUE', '2 RED', '1R + 1B'];
+    const DEVIATIONS = ['Anterior Pelvic Tilt', 'Shoulder Protraction', 'Left-Side Knee Valgus', 'Thoracic Kyphosis', 'None / Perfectly Aligned'];
+
+    const ready = s.apparatus.length > 0 && !!s.tension && s.deviations.length > 0;
+    let slideLabel, slideFillPct, slideLabelColor;
+    if (s.scene === 'logged') { slideLabel = 'COMPLETE ✓'; slideFillPct = 100; slideLabelColor = '#0a0b0d'; }
+    else if (s.completing) { slideLabel = 'PROCESSING…'; slideFillPct = 100; slideLabelColor = '#0a0b0d'; }
+    else if (ready) { slideLabel = '>>> TAP TO COMPLETE SESSION & UNLOCK PAYOUT <<<'; slideFillPct = 0; slideLabelColor = 'var(--accent)'; }
+    else { slideLabel = 'COMPLETE STEPS 1–3 TO UNLOCK'; slideFillPct = 0; slideLabelColor = '#4a505c'; }
+
+    let stageIdx = 1;
+    if (s.scene === 'logging' || s.scene === 'logged') stageIdx = 2;
+    const stages = [1, 2].map(i => ({ color: i <= stageIdx ? this.props.accent ?? '#c9a769' : '#242427' }));
+
+    return {
+      accent: this.props.accent ?? '#c9a769',
+      clientName: this.props.clientName ?? 'Tan Qing Wen',
+      location: this.props.location ?? 'Bangsar',
+      vibe: 'Clinical / The Scientist',
+      assessmentFlag: 'ASSESSMENT: PENDING',
+      stages,
+
+      showRestart: s.scene !== 'incoming',
+      restart: () => this.restart(),
+
+      isIncoming: s.scene === 'incoming',
+      isAccepted: s.scene === 'accepted',
+      isDeclined: s.scene === 'declined',
+      isLogging: s.scene === 'logging',
+      isLogged: s.scene === 'logged',
+
+      accept: () => this.accept(),
+      decline: () => this.decline(),
+      startLog: () => this.startLog(),
+
+      clock: '14:02',
+      payout: '48',
+
+      apparatusOptions: APPARATUS.map(a => ({ label: a, cls: s.apparatus.includes(a) ? 'selected' : '', fn: () => this.toggle('apparatus', a) })),
+      tensionOptions: TENSION.map(t => ({ label: t, cls: s.tension === t ? 'selected' : '', fn: () => this.setTension(t) })),
+      deviationOptions: DEVIATIONS.map(d => ({ label: d, cls: s.deviations.includes(d) ? 'selected' : '', fn: () => this.toggleDeviation(d) })),
+
+      saveSequence: s.saveSequence,
+      saveCls: s.saveSequence ? 'selected' : '',
+      saveLabel: (s.saveSequence ? '☑ ' : '☐ ') + 'Save this custom progression to my library',
+      toggleSave: () => this.toggleSave(),
+      sequenceName: s.sequenceName,
+      onSeqNameChange: (e) => this.onSeqNameChange(e),
+
+      scoreOptions: Array.from({ length: 10 }, (_, i) => i + 1).map(n => ({ n, cls: s.score === n ? 'selected' : '', fn: () => this.setScore(n) })),
+
+      slideLabel, slideFillPct, slideLabelColor,
+      onSlideClick: () => this.onSlideClick()
+    };
+  }
+}
+</script>
+</body>
+</html>

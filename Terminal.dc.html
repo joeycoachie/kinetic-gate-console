@@ -1,0 +1,1009 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,500&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
+
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    .term { font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace; }
+    .term .wordmark { font-family: 'Bodoni Moda', Georgia, serif; }
+    a, a:hover { color: var(--accent); }
+
+    .term ::-webkit-scrollbar { width: 8px; height: 8px; }
+    .term ::-webkit-scrollbar-track { background: #0a0b0d; }
+    .term ::-webkit-scrollbar-thumb { background: #2a2e38; }
+
+    @keyframes blinkDot { 0%,49% { opacity: 1; } 50%,100% { opacity: 0.15; } }
+    @keyframes flashRow { 0%,49% { background: rgba(239,68,68,0.22); } 50%,100% { background: transparent; } }
+    @keyframes tripFlash { 0%,49% { background: rgba(239,68,68,0.35); } 50%,100% { background: rgba(239,68,68,0.05); } }
+
+    .blink-dot { animation: blinkDot 1s step-start infinite; }
+    .row-flash { animation: flashRow 1s step-start infinite; }
+    .trip-flash { animation: tripFlash 0.4s step-start infinite; }
+
+    .term table { border-collapse: collapse; width: 100%; }
+    .term th { text-align: left; font-weight: 700; font-size: 11px; letter-spacing: 0.06em; color: #6b7280; padding: 8px 12px; border-bottom: 1px solid #2a2e38; white-space: nowrap; }
+    .term td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #1c1f27; vertical-align: middle; }
+    .term tr:last-child td { border-bottom: none; }
+
+    .badge { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; border: 1px solid; }
+    .badge-idle { color: #93a3b8; border-color: #384153; background: rgba(148,163,184,0.06); }
+    .badge-busy { color: #34d399; border-color: #1c6e52; background: rgba(52,211,153,0.08); }
+    .badge-offline { color: #f87171; border-color: #6e2323; background: rgba(248,113,113,0.08); }
+
+    .cap-elite { color: #34d399; }
+    .cap-high { color: #a3e635; }
+    .cap-mid { color: #eab308; }
+    .cap-weedy { color: #f87171; }
+
+    .lat-ok { color: #93a3b8; }
+    .lat-warn { color: #eab308; font-weight: 700; }
+    .lat-crit { color: #f87171; font-weight: 800; }
+    .lat-live { color: #34d399; font-weight: 700; }
+
+    .lever-btn { font-family: inherit; font-size: 10.5px; font-weight: 700; letter-spacing: 0.03em; padding: 6px 9px; background: #14161b; border: 1px solid #333947; color: #d7dbe4; cursor: pointer; white-space: nowrap; }
+    .lever-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .lever-btn:active { transform: translateY(1px); }
+    .lever-primary { border-color: var(--accent); color: var(--accent); }
+    .lever-danger { border-color: #6e2323; color: #f87171; }
+    .lever-danger:hover { border-color: #f87171; }
+
+    .tl-grn { color: #34d399; }
+    .tl-ylw { color: #eab308; }
+    .tl-red { color: #f87171; font-weight: 800; }
+
+    .override-tag { font-size: 10px; color: #7c8494; margin-top: 3px; display: block; }
+    .override-tag.active { color: var(--accent); font-weight: 700; }
+
+    .slider-track { position: relative; height: 10px; background: #14161b; border: 1px solid #2a2e38; }
+    .slider-fill { position: absolute; top: 0; left: 0; bottom: 0; background: var(--accent); opacity: 0.55; }
+    input[type=range] { -webkit-appearance: none; width: 100%; height: 22px; background: transparent; margin: 0; position: relative; z-index: 2; cursor: pointer; }
+    input[type=range]::-webkit-slider-runnable-track { height: 22px; background: transparent; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 22px; background: var(--accent); border: 1px solid #000; margin-top: 0; cursor: pointer; }
+    input[type=range]::-moz-range-track { height: 22px; background: transparent; }
+    input[type=range]::-moz-range-thumb { width: 10px; height: 22px; background: var(--accent); border: 1px solid #000; border-radius: 0; cursor: pointer; }
+
+    .console-input { font-family: inherit; font-size: 12.5px; background: #0d0e11; border: 1px solid #2a2e38; color: #d7dbe4; padding: 9px 10px; width: 100%; outline: none; }
+    .console-input:focus { border-color: var(--accent); }
+
+    .exec-btn { font-family: inherit; font-weight: 800; font-size: 12px; letter-spacing: 0.05em; background: var(--accent); color: #0a0b0d; border: 1px solid var(--accent); padding: 0 20px; cursor: pointer; }
+    .exec-btn:hover { filter: brightness(1.1); }
+    .exec-btn:active { transform: translateY(1px); }
+
+    .panel-title { font-size: 11.5px; font-weight: 800; letter-spacing: 0.08em; color: var(--accent); }
+    .panel-sub { font-size: 10.5px; color: #5b6272; }
+
+    .drift-badge { display:inline-flex; align-items:center; gap:4px; font-size:10px; font-weight:800; letter-spacing:0.03em; color:#f87171; border:1px solid #6e2323; background:rgba(248,113,113,0.1); padding:2px 7px; }
+    .ok-badge { display:inline-flex; align-items:center; gap:4px; font-size:10px; font-weight:800; letter-spacing:0.03em; color:#34d399; border:1px solid #1c6e52; background:rgba(52,211,153,0.08); padding:2px 7px; }
+    .pctile-bar { position:relative; width:64px; height:8px; background:#14161b; border:1px solid #2a2e38; display:inline-block; vertical-align:middle; margin-right:8px; }
+    .pctile-fill { position:absolute; top:0; left:0; bottom:0; background:var(--accent); }
+
+    .seg-card { border:1px solid #2a2e38; padding:12px 14px; display:flex; flex-direction:column; gap:8px; }
+    .seg-name { font-size:12px; font-weight:800; color:#e6e9ef; }
+    .elastic-tag { font-size:10px; font-weight:800; letter-spacing:0.03em; padding:2px 6px; border:1px solid; align-self:flex-start; }
+    .elastic-tag.elastic { color:#f87171; border-color:#6e2323; background:rgba(248,113,113,0.08); }
+    .elastic-tag.inelastic { color:#34d399; border-color:#1c6e52; background:rgba(52,211,153,0.08); }
+    .price-row { display:flex; align-items:center; gap:8px; font-size:11px; }
+    .price-label { width:56px; color:#8890a0; }
+    .price-bar-track { flex-grow:1; height:14px; background:#14161b; border:1px solid #2a2e38; position:relative; }
+    .price-bar-fill { position:absolute; top:0; left:0; bottom:0; background:var(--accent); opacity:0.45; }
+    .price-bar-fill.current { opacity:0.9; }
+    .price-val { width:46px; text-align:right; color:#a9afbc; }
+
+    .heat-grid { display:grid; grid-template-columns: 130px repeat(4, 1fr); gap:4px; }
+    .heat-head { font-size:10px; font-weight:700; color:#6b7280; text-align:center; padding:4px 0; }
+    .heat-row-label { font-size:11.5px; font-weight:700; color:#e6e9ef; display:flex; align-items:center; }
+    .heat-cell { display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; height:34px; border:1px solid #2a2e38; }
+
+    .cohort-row { display:flex; align-items:center; gap:14px; }
+    .cohort-name { width:230px; font-size:12px; font-weight:700; color:#e6e9ef; }
+
+    .subhead { font-size:10.5px; font-weight:800; letter-spacing:0.07em; color:#8890a0; margin-bottom:2px; }
+    .incentive-chip { border:1px solid #2a2e38; background:#0d0e11; padding:8px 12px; display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:11.5px; }
+
+    .pending-row { display:flex; align-items:center; gap:8px; margin-top:8px; }
+    .pending-chip { font-size:10px; font-weight:800; letter-spacing:0.03em; color:#eab308; border:1px solid #6b5a1c; background:rgba(234,179,8,0.1); padding:3px 8px; white-space:nowrap; }
+    .pending-chip.large { color:#f87171; border-color:#6e2323; background:rgba(248,113,113,0.1); }
+  </style>
+</helmet>
+
+<div style="--accent:{{accent}}; width:1440px; background:#0a0b0d; color:#c9cdd6; padding:22px; display:flex; flex-direction:column; gap:16px;" class="term">
+
+  <!-- BRAND STRIP -->
+  <div style="display:flex; align-items:baseline; justify-content:space-between;">
+    <div style="display:flex; align-items:baseline; gap:12px;">
+      <span class="wordmark" style="font-size:17px; letter-spacing:0.18em; color:#f5f2ec; font-weight:500;">GATE</span>
+      <span style="font-size:11px; letter-spacing:0.1em; color:#5b6272;">// THE GUILD CONSOLE — FOUNDER OVERRIDE TERMINAL</span>
+    </div>
+    <div style="font-size:10.5px; color:#454b58; letter-spacing:0.08em;">is_founder_override: true when any lever below fires</div>
+  </div>
+
+  <!-- HEADER -->
+  <div style="display:flex; align-items:center; justify-content:space-between; border:1px solid #2a2e38; background:#111318; padding:12px 18px;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <sc-if value="{{stallingCount}}" hint-placeholder-val="{{true}}">
+        <span class="blink-dot" style="color:#f87171; font-weight:800; font-size:13px;">[!]</span>
+      </sc-if>
+      <sc-if value="{{noStalling}}" hint-placeholder-val="{{false}}">
+        <span style="color:#34d399; font-weight:800; font-size:13px;">[OK]</span>
+      </sc-if>
+      <span style="font-size:13px; font-weight:800; letter-spacing:0.04em; color:#e6e9ef;">SYSTEM STATUS: {{stallingText}}</span>
+    </div>
+    <div style="font-size:12.5px; color:#8890a0; letter-spacing:0.03em;">{{headerDate}} <span style="color:#3a3f4c;">|</span> {{headerClock}}</div>
+  </div>
+
+  <!-- PANEL 1 -->
+  <div style="border:1px solid #2a2e38; background:#111318;">
+    <div style="padding:12px 16px; border-bottom:1px solid #2a2e38; display:flex; align-items:baseline; gap:10px;">
+      <span class="panel-title">PANEL 1 — THE SUPPLY PRESSURE MATRIX</span>
+      <span class="panel-sub">(4 INSTRUCTORS)</span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>NAME</th><th>STATUS</th><th>TODAY'S JOBS</th><th>COMPLIANCE CAP</th><th>LATENCY</th><th>QUICK LEVER</th>
+        </tr>
+      </thead>
+      <tbody>
+        <sc-for list="{{instructors}}" as="ins" hint-placeholder-count="4">
+          <tr class="{{ins.rowClass}}">
+            <td style="font-weight:700; color:#e6e9ef;">
+              {{ins.name}}
+              <sc-if value="{{ins.ghosted}}" hint-placeholder-val="{{false}}">
+                <span style="color:var(--accent); font-size:10px; margin-left:6px;">[GHOSTED]</span>
+              </sc-if>
+            </td>
+            <td><span class="badge {{ins.statusBadgeClass}}">{{ins.status}}</span></td>
+            <td style="color:#a9afbc;">{{ins.jobs}}</td>
+            <td class="{{ins.capClass}}">{{ins.complianceText}}</td>
+            <td class="{{ins.latClass}}">{{ins.latencyText}}</td>
+            <td>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <sc-for list="{{ins.actions}}" as="act" hint-placeholder-count="2">
+                  <button class="lever-btn {{act.cls}}" onClick="{{act.fn}}">{{act.label}}</button>
+                </sc-for>
+              </div>
+            </td>
+          </tr>
+        </sc-for>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PANEL 2 -->
+  <div style="border:1px solid #2a2e38; background:#111318;">
+    <div style="padding:12px 16px; border-bottom:1px solid #2a2e38; display:flex; align-items:baseline; gap:10px;">
+      <span class="panel-title">PANEL 2 — THE MATCH LATENCY INCINERATOR</span>
+      <span class="panel-sub">(QUEUE — bookings.status)</span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>CLIENT</th><th>REQUEST TYPE</th><th>TIMELOCK CLOCK</th><th>CURRENT BOTTLENECK</th><th>GOD-MODE INTERVENTION</th>
+        </tr>
+      </thead>
+      <tbody>
+        <sc-for list="{{queue}}" as="q" hint-placeholder-count="3">
+          <tr class="{{q.rowClass}}">
+            <td style="font-weight:700; color:#e6e9ef;">{{q.client}}</td>
+            <td style="color:#a9afbc;">{{q.request}}</td>
+            <td class="{{q.tlClass}}">{{q.timelockText}}</td>
+            <td style="color:#a9afbc;">
+              {{q.bottleneck}}
+              <span class="override-tag {{q.overrideCls}}">override_type: {{q.overrideType}}</span>
+            </td>
+            <td>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <sc-for list="{{q.actions}}" as="act" hint-placeholder-count="2">
+                  <button class="lever-btn {{act.cls}}" onClick="{{act.fn}}">{{act.label}}</button>
+                </sc-for>
+              </div>
+            </td>
+          </tr>
+        </sc-for>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PANEL 3 -->
+  <div style="border:1px solid #2a2e38; background:#111318;">
+    <div style="padding:12px 16px; border-bottom:1px solid #2a2e38;">
+      <span class="panel-title">PANEL 3 — GLOBAL OVERRIDE CONFIGURATOR</span>
+      <span class="panel-sub">(THE MACRO DIALS)</span>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:18px; padding:18px 20px;">
+
+      <div style="display:flex; align-items:center; gap:16px;">
+        <div style="width:220px; font-size:12px; font-weight:700; color:#e6e9ef;">SUPPLY TENSION MULTIPLIER</div>
+        <div style="flex-grow:1; position:relative;">
+          <div class="slider-track"><div class="slider-fill" style="width:{{supplyPct}}%;"></div></div>
+          <input type="range" min="0" max="100" step="1" value="{{supplyTension}}" onChange="{{onSupplyChange}}" style="position:relative; top:-22px;">
+        </div>
+        <div style="width:110px; text-align:right; font-size:12px; font-weight:800; color:var(--accent);">{{supplyText}}</div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:16px;">
+        <div style="width:220px; font-size:12px; font-weight:700; color:#e6e9ef;">RESPONDER CASH BOUNTY</div>
+        <div style="flex-grow:1; position:relative;">
+          <div class="slider-track"><div class="slider-fill" style="width:{{bountyPct}}%;"></div></div>
+          <input type="range" min="0" max="30" step="1" value="{{cashBounty}}" onChange="{{onBountyChange}}" style="position:relative; top:-22px;">
+        </div>
+        <div style="width:110px; text-align:right; font-size:12px; font-weight:800; color:var(--accent);">{{bountyText}}</div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:16px;">
+        <div style="width:220px; font-size:12px; font-weight:700; color:#e6e9ef;">AUTO-TRIPWIRE THRESHOLD</div>
+        <div style="flex-grow:1; position:relative;">
+          <div class="slider-track"><div class="slider-fill" style="width:{{threshPct}}%;"></div></div>
+          <input type="range" min="30" max="300" step="10" value="{{tripwireThreshold}}" onChange="{{onThreshChange}}" style="position:relative; top:-22px;">
+        </div>
+        <div style="width:110px; text-align:right; font-size:12px; font-weight:800; color:var(--accent);">{{threshText}}</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PANEL 4 -->
+  <div style="border:1px solid #2a2e38; background:#111318;">
+    <div style="padding:12px 16px; border-bottom:1px solid #2a2e38; display:flex; align-items:baseline; gap:10px;">
+      <span class="panel-title">PANEL 4 — PERFORMANCE TELEMETRY</span>
+      <span class="panel-sub">(PERCENTILE RANK · &gt;1.5σ DRIFT ALERTS)</span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>INSTRUCTOR</th><th>COMPLETION</th><th>RETENTION</th><th>SENTIMENT</th><th>COMPOSITE</th><th>PERCENTILE</th><th>BASELINE DRIFT</th>
+        </tr>
+      </thead>
+      <tbody>
+        <sc-for list="{{telemetry}}" as="t" hint-placeholder-count="4">
+          <tr class="{{t.rowClass}}">
+            <td style="font-weight:700; color:#e6e9ef;">{{t.name}}</td>
+            <td style="color:#a9afbc;">{{t.completionText}}</td>
+            <td style="color:#a9afbc;">{{t.retentionText}}</td>
+            <td style="color:#a9afbc;">{{t.sentimentText}}</td>
+            <td class="{{t.capClass}}">{{t.compositeText}}</td>
+            <td><span class="pctile-bar"><span class="pctile-fill" style="width:{{t.percentile}}%;"></span></span>{{t.percentile}}th</td>
+            <td>
+              <sc-if value="{{t.drift}}" hint-placeholder-val="{{false}}">
+                <span class="drift-badge">[DRIFT] {{t.zText}}σ vs baseline</span>
+              </sc-if>
+              <sc-if value="{{t.noDrift}}" hint-placeholder-val="{{true}}">
+                <span class="ok-badge">NOMINAL</span>
+              </sc-if>
+            </td>
+          </tr>
+        </sc-for>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PANEL 5 -->
+  <div style="border:1px solid #2a2e38; background:#111318;">
+    <div style="padding:12px 16px; border-bottom:1px solid #2a2e38; display:flex; align-items:baseline; gap:10px;">
+      <span class="panel-title">PANEL 5 — MARKET CLEARING &amp; PRICING ENGINE</span>
+      <span class="panel-sub">(ELASTICITY · UTILIZATION)</span>
+    </div>
+    <div style="padding:18px 20px; display:flex; flex-direction:column; gap:20px;">
+
+      <div>
+        <div class="subhead" style="margin-bottom:10px;">PRICE ELASTICITY BY SEGMENT</div>
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px;">
+          <sc-for list="{{segments}}" as="seg" hint-placeholder-count="3">
+            <div class="seg-card">
+              <div style="display:flex; align-items:center; justify-content:space-between;">
+                <span class="seg-name">{{seg.name}}</span>
+                <span class="elastic-tag {{seg.elasticClass}}">{{seg.elasticLabel}}</span>
+              </div>
+              <sc-for list="{{seg.points}}" as="pt" hint-placeholder-count="3">
+                <div class="price-row">
+                  <span class="price-label">{{pt.priceText}}</span>
+                  <div class="price-bar-track"><div class="price-bar-fill {{pt.currentClass}}" style="width:{{pt.barPct}}%;"></div></div>
+                  <span class="price-val">{{pt.bookingsText}}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div>
+        <div class="subhead" style="margin-bottom:10px;">CAPACITY UTILIZATION — PEAK VS OFF-PEAK</div>
+        <div class="heat-grid">
+          <div></div>
+          <sc-for list="{{timeBlocks}}" as="tb" hint-placeholder-count="4">
+            <div class="heat-head">{{tb}}</div>
+          </sc-for>
+          <sc-for list="{{utilization}}" as="row" hint-placeholder-count="4">
+            <div class="heat-row-label">{{row.name}}</div>
+            <sc-for list="{{row.cells}}" as="cell" hint-placeholder-count="4">
+              <div class="heat-cell" style="background:{{cell.bg}}; color:{{cell.fg}};">{{cell.pct}}%</div>
+            </sc-for>
+          </sc-for>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PANEL 6 -->
+  <div style="border:1px solid #2a2e38; background:#111318;">
+    <div style="padding:12px 16px; border-bottom:1px solid #2a2e38; display:flex; align-items:baseline; gap:10px;">
+      <span class="panel-title">PANEL 6 — BEHAVIORAL BIASING &amp; INCENTIVE OPS</span>
+      <span class="panel-sub">(DISCOVERY FEED WEIGHTING · FLASH CAMPAIGNS · CHANGES REQUIRE CONFIRM)</span>
+    </div>
+    <div style="padding:18px 20px; display:flex; flex-direction:column; gap:22px;">
+
+      <div>
+        <div class="subhead" style="margin-bottom:12px;">COHORT VISIBILITY WEIGHT — DISCOVERY FEED</div>
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <sc-for list="{{cohorts}}" as="coh" hint-placeholder-count="4">
+            <div class="cohort-row" style="align-items:flex-start;">
+              <div class="cohort-name" style="padding-top:2px;">{{coh.name}}</div>
+              <div style="flex-grow:1;">
+                <div style="position:relative;">
+                  <div class="slider-track">
+                    <div style="position:absolute; top:0; bottom:0; left:50%; width:1px; background:#454b58;"></div>
+                    <div style="position:absolute; top:0; bottom:0; left:{{coh.fillLeft}}%; width:{{coh.fillWidth}}%; background:{{coh.fillColor}}; opacity:0.55;"></div>
+                  </div>
+                  <input type="range" min="-50" max="50" step="5" value="{{coh.sliderValue}}" onChange="{{coh.onChange}}" style="position:relative; top:-22px;">
+                </div>
+                <sc-if value="{{coh.hasPending}}" hint-placeholder-val="{{false}}">
+                  <div class="pending-row">
+                    <span class="pending-chip {{coh.largeChangeClass}}">PENDING {{coh.committedText}} &rarr; {{coh.pendingText}}<sc-if value="{{coh.isLarge}}" hint-placeholder-val="{{false}}"> &middot; LARGE CHANGE</sc-if></span>
+                    <button class="lever-btn lever-primary" onClick="{{coh.confirm}}">CONFIRM</button>
+                    <button class="lever-btn" onClick="{{coh.discard}}">DISCARD</button>
+                  </div>
+                </sc-if>
+              </div>
+              <div style="width:130px; text-align:right; font-size:12px; font-weight:800; color:{{coh.weightColor}}; padding-top:2px;">{{coh.weightText}}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div>
+        <div class="subhead" style="margin-bottom:12px;">FLASH INCENTIVE DEPLOYMENT</div>
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <sc-for list="{{cohortChips}}" as="chip" hint-placeholder-count="4">
+                <button class="lever-btn {{chip.cls}}" onClick="{{chip.fn}}">{{chip.label}}</button>
+              </sc-for>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <button class="lever-btn" onClick="{{decMultiplier}}">−</button>
+              <span style="font-size:13px; font-weight:800; color:var(--accent); width:52px; text-align:center; display:inline-block;">{{multiplierText}}</span>
+              <button class="lever-btn" onClick="{{incMultiplier}}">+</button>
+            </div>
+            <div style="display:flex; gap:6px;">
+              <sc-for list="{{durationChips}}" as="dc" hint-placeholder-count="3">
+                <button class="lever-btn {{dc.cls}}" onClick="{{dc.fn}}">{{dc.label}}</button>
+              </sc-for>
+            </div>
+            <sc-if value="{{incentiveNotArmed}}" hint-placeholder-val="{{true}}">
+              <button class="exec-btn" onClick="{{armIncentive}}">DEPLOY FLASH INCENTIVE</button>
+            </sc-if>
+          </div>
+
+          <sc-if value="{{incentiveArmed}}" hint-placeholder-val="{{false}}">
+            <div class="pending-row" style="margin-top:0;">
+              <span class="pending-chip">CONFIRM DEPLOY — {{armedSummaryText}}</span>
+              <button class="exec-btn" onClick="{{deployIncentive}}">CONFIRM DEPLOY</button>
+              <button class="lever-btn" onClick="{{cancelArmIncentive}}">CANCEL</button>
+            </div>
+          </sc-if>
+
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <sc-for list="{{activeIncentives}}" as="inc" hint-placeholder-count="1">
+              <div class="incentive-chip">
+                <span style="color:#e6e9ef; font-weight:700;">{{inc.cohortName}} <span style="color:var(--accent);">×{{inc.multiplierText}}</span></span>
+                <span style="color:#a9afbc;">{{inc.remainingText}} remaining</span>
+                <button class="lever-btn lever-danger" onClick="{{inc.kill}}">KILL</button>
+              </div>
+            </sc-for>
+            <sc-if value="{{noActiveIncentives}}" hint-placeholder-val="{{true}}">
+              <div style="font-size:11px; color:#5b6272;">No active incentive campaigns.</div>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CONSOLE -->
+  <div style="border:1px solid #2a2e38; background:#111318; padding:14px 16px; display:flex; gap:10px; align-items:center;">
+    <span style="color:var(--accent); font-weight:800; font-size:13px;">&gt;_</span>
+    <input class="console-input" type="text" value="{{consoleValue}}" onChange="{{onConsoleChange}}" placeholder="manual_route --match_id 105 --instructor_id inst_d --force">
+    <button class="exec-btn" onClick="{{executeCommand}}">EXECUTE</button>
+  </div>
+
+  <!-- SYSTEM LOG -->
+  <div style="border:1px solid #2a2e38; background:#0d0e11; padding:12px 16px;">
+    <div style="font-size:10.5px; font-weight:800; letter-spacing:0.08em; color:#4ade80; margin-bottom:8px;">SYSTEM LOG</div>
+    <div style="display:flex; flex-direction:column-reverse; gap:3px; max-height:120px; overflow-y:auto;">
+      <sc-for list="{{log}}" as="line" hint-placeholder-count="3">
+        <div style="font-size:11.5px; color:#4ade80; opacity:0.9;">{{line}}</div>
+      </sc-for>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#f5a623","options":["#f5a623","#22c55e","#38bdf8","#f87171"]}}'>
+class Component extends DCLogic {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      clockSeconds: 13 * 3600 + 28 * 60 + 45,
+      supplyTension: 75,
+      cashBounty: 10,
+      tripwireThreshold: 180,
+      consoleValue: 'manual_route --match_id 105 --instructor_id inst_d --force',
+      log: [
+        '13:28:45  BOOT  GATE terminal online — scanning match queue'
+      ],
+      instructors: [
+        { id: 'a', name: 'Instructor A', status: 'IDLE', jobs: '2 Sessions', compliance: 92, latencySec: 42 * 60, ghosted: false, autoAssign: false, flash: false },
+        { id: 'b', name: 'Instructor B', status: 'BUSY', jobs: '4 Sessions', compliance: 98, latencySec: 0, ghosted: false, autoAssign: false, flash: false },
+        { id: 'c', name: 'Instructor C', status: 'OFFLINE', jobs: '0 Sessions', compliance: 64, latencySec: null, ghosted: false, autoAssign: false, flash: false },
+        { id: 'd', name: 'Instructor D', status: 'IDLE', jobs: '1 Session', compliance: 80, latencySec: 4 * 60, ghosted: true, autoAssign: false, flash: false }
+      ],
+      queue: [
+        { id: '104', client: 'Client 104', request: 'Pilates Ref.', timelockSec: 18 * 60 + 22, bottleneck: 'Waiting on Instructor A', shadowed: false, shadowRemaining: 0, held: false, overrideType: 'none' },
+        { id: '105', client: 'Client 105', request: 'Golf Solo', timelockSec: 4 * 60 + 10, bottleneck: 'Matching Engine Cycling', shadowed: false, shadowRemaining: 0, held: false, overrideType: 'none' },
+        { id: '106', client: 'Client 106', request: 'Strength Tr.', timelockSec: 45, bottleneck: 'Ping sent to B & D', shadowed: false, shadowRemaining: 0, held: false, overrideType: 'none' }
+      ],
+      telemetryData: {
+        a: { completion: 94, retention: 81, sentiment: 8.6 },
+        b: { completion: 97, retention: 89, sentiment: 9.1 },
+        c: { completion: 71, retention: 52, sentiment: 6.2 },
+        d: { completion: 88, retention: 74, sentiment: 7.8 }
+      },
+      segments: [
+        { id: 'pilates', name: 'Pilates', currentPrice: 45, points: [{ price: 35, bookings: 70 }, { price: 45, bookings: 48 }, { price: 55, bookings: 25 }] },
+        { id: 'golf', name: 'Golf', currentPrice: 90, points: [{ price: 70, bookings: 40 }, { price: 90, bookings: 36 }, { price: 110, bookings: 33 }] },
+        { id: 'strength', name: 'Strength', currentPrice: 40, points: [{ price: 30, bookings: 60 }, { price: 40, bookings: 44 }, { price: 50, bookings: 15 }] }
+      ],
+      utilizationData: {
+        a: [82, 45, 30, 88],
+        b: [90, 78, 65, 95],
+        c: [20, 15, 10, 25],
+        d: [55, 60, 40, 70]
+      },
+      cohorts: [
+        { id: 'newbies', name: 'New Instructors (<30d)', weight: 0 },
+        { id: 'elite', name: 'Elite Compliance (95%+)', weight: 15 },
+        { id: 'offpeak', name: 'Off-Peak Availability', weight: 0 },
+        { id: 'drifted', name: 'Flagged Drift (<P30)', weight: -20 }
+      ],
+      cohortDrafts: {},
+      incentiveCohortId: 'newbies',
+      incentiveMultiplier: 2,
+      incentiveDurationMin: 30,
+      incentiveArmed: false,
+      activeIncentives: [],
+      nextIncentiveId: 1
+    };
+    this._tick = this._tick.bind(this);
+  }
+
+  componentDidMount() {
+    this._interval = setInterval(this._tick, 2000);
+  }
+
+  componentWillUnmount() {
+    if (this._interval) clearInterval(this._interval);
+  }
+
+  pushLog(msg) {
+    const c = this.state.clockSeconds;
+    const stamp = this.fmtClock(c);
+    this.setState(prev => ({ log: [...prev.log, stamp + '  ' + msg].slice(-40) }));
+  }
+
+  fmtClock(totalSec) {
+    const s = Math.floor(totalSec) % 86400;
+    const hh = Math.floor(s / 3600).toString().padStart(2, '0');
+    const mm = Math.floor((s % 3600) / 60).toString().padStart(2, '0');
+    const ss = Math.floor(s % 60).toString().padStart(2, '0');
+    return hh + ':' + mm + ':' + ss;
+  }
+
+  fmtMinSec(totalSec) {
+    const t = Math.max(0, Math.floor(totalSec));
+    const m = Math.floor(t / 60);
+    const sec = t % 60;
+    return m + 'm ' + sec.toString().padStart(2, '0') + 's';
+  }
+
+  _tick() {
+    const STEP = 18;
+    const expiredIncentives = [];
+    this.setState(prev => {
+      const clockSeconds = prev.clockSeconds + STEP;
+
+      const instructors = prev.instructors.map(ins => {
+        if (ins.status === 'IDLE' && ins.latencySec !== null) {
+          return { ...ins, latencySec: ins.latencySec + STEP };
+        }
+        return ins;
+      });
+
+      const queue = prev.queue.map(q => {
+        if (q.held) return q;
+        if (q.shadowed) {
+          const rem = q.shadowRemaining - STEP;
+          if (rem <= 0) {
+            return { ...q, shadowed: false, shadowRemaining: 0, timelockSec: q.timelockSec + STEP, bottleneck: q.preShadowBottleneck + ' — escalation needed' };
+          }
+          return { ...q, shadowRemaining: rem };
+        }
+        return { ...q, timelockSec: q.timelockSec + STEP };
+      });
+
+      const activeIncentives = [];
+      prev.activeIncentives.forEach(inc => {
+        const rem = inc.remainingSec - STEP;
+        if (rem <= 0) {
+          expiredIncentives.push(inc);
+        } else {
+          activeIncentives.push({ ...inc, remainingSec: rem });
+        }
+      });
+
+      return { clockSeconds, instructors, queue, activeIncentives };
+    });
+    expiredIncentives.forEach(inc => this.pushLog('INCENTIVE EXPIRED → ' + inc.cohortName + ' campaign complete'));
+  }
+
+  toggleGhost(id) {
+    const ins = this.state.instructors.find(i => i.id === id);
+    const willBe = ins ? !ins.ghosted : true;
+    this.setState(prev => ({
+      instructors: prev.instructors.map(i => i.id === id ? { ...i, ghosted: !i.ghosted } : i)
+    }));
+    this.pushLog('GHOST ' + (willBe ? 'ON' : 'OFF') + ' → ' + (ins ? ins.name : id) + ' forced onto open market');
+  }
+
+  fireTripwire(id) {
+    const ins = this.state.instructors.find(i => i.id === id);
+    this.setState(prev => ({
+      instructors: prev.instructors.map(i => i.id === id ? { ...i, flash: true } : i)
+    }));
+    this.pushLog('TRIPWIRE → ' + (ins ? ins.name : id) + ': SMS + call blast dispatched, bypassing DND');
+    setTimeout(() => {
+      this.setState(prev => ({
+        instructors: prev.instructors.map(i => i.id === id ? { ...i, flash: false } : i)
+      }));
+    }, 3000);
+  }
+
+  forceWake(id) {
+    const ins = this.state.instructors.find(i => i.id === id);
+    this.setState(prev => ({
+      instructors: prev.instructors.map(i => i.id === id ? { ...i, status: 'IDLE', latencySec: 0 } : i)
+    }));
+    this.pushLog('FORCE WAKE-UP ALARM → ' + (ins ? ins.name : id) + ': device alarm triggered, now IDLE');
+  }
+
+  toggleAutoAssign(id) {
+    const ins = this.state.instructors.find(i => i.id === id);
+    const willBe = ins ? !ins.autoAssign : true;
+    this.setState(prev => ({
+      instructors: prev.instructors.map(i => i.id === id ? { ...i, autoAssign: !i.autoAssign } : i)
+    }));
+    this.pushLog('AUTO-ASSIGN ' + (willBe ? 'ENABLED' : 'DISABLED') + ' → ' + (ins ? ins.name : id));
+  }
+
+  queueNext(id) {
+    const ins = this.state.instructors.find(i => i.id === id);
+    this.pushLog('QUEUE NEXT SESSION → ' + (ins ? ins.name : id) + ': next match staged behind current session');
+  }
+
+  shadowMatch(qid) {
+    const q = this.state.queue.find(x => x.id === qid);
+    this.setState(prev => ({
+      queue: prev.queue.map(x => x.id === qid ? { ...x, shadowed: true, shadowRemaining: 900, preShadowBottleneck: x.bottleneck, overrideType: 'shadow_mask' } : x)
+    }));
+    this.pushLog('SHADOW MATCH → ' + (q ? q.client : qid) + ': is_founder_override=true, override_type=shadow_mask, 15:00 to resolve');
+  }
+
+  reroute(qid, targetLabel) {
+    const q = this.state.queue.find(x => x.id === qid);
+    this.setState(prev => ({
+      queue: prev.queue.map(x => x.id === qid ? { ...x, bottleneck: 'Rerouted → ' + targetLabel, timelockSec: 15, shadowed: false, overrideType: 'direct_route' } : x)
+    }));
+    this.pushLog('REROUTE → ' + (q ? q.client : qid) + ' forced onto ' + targetLabel + ' (override_type=direct_route)');
+  }
+
+  applyBounty(qid) {
+    const q = this.state.queue.find(x => x.id === qid);
+    const amt = this.state.cashBounty;
+    this.setState(prev => ({
+      queue: prev.queue.map(x => x.id === qid ? { ...x, bottleneck: 'Bounty +$' + amt + ' applied — awaiting accept', overrideType: 'cash_bounty' } : x)
+    }));
+    this.pushLog('CASH BOUNTY → ' + (q ? q.client : qid) + ': +$' + amt + ' injected (override_type=cash_bounty)');
+  }
+
+  holdQueue(qid) {
+    const q = this.state.queue.find(x => x.id === qid);
+    const willHold = q ? !q.held : true;
+    this.setState(prev => ({
+      queue: prev.queue.map(x => x.id === qid ? { ...x, held: !x.held } : x)
+    }));
+    this.pushLog((willHold ? 'HOLD QUEUE' : 'RELEASE QUEUE') + ' → ' + (q ? q.client : qid));
+  }
+
+  executeCommand() {
+    const cmd = this.state.consoleValue;
+    const matchIdM = cmd.match(/--match_id\s+(\S+)/);
+    const instIdM = cmd.match(/--instructor_id\s+(\S+)/);
+    if (matchIdM) {
+      const digits = matchIdM[1].replace(/\D/g, '');
+      const q = this.state.queue.find(x => x.id === digits);
+      if (q) {
+        const label = instIdM ? instIdM[1].replace('inst_', 'Instructor ').toUpperCase() : 'MANUAL TARGET';
+        this.setState(prev => ({
+          queue: prev.queue.map(x => x.id === digits ? { ...x, bottleneck: 'Manual route → ' + label + ' (forced)', timelockSec: 8, shadowed: false, held: false, overrideType: 'direct_route' } : x)
+        }));
+        this.pushLog('$ ' + cmd);
+        this.pushLog('  ↳ EXECUTED: Client ' + digits + ' force-routed to ' + label + ' (override_type=direct_route)');
+        return;
+      }
+    }
+    this.pushLog('$ ' + cmd);
+    this.pushLog('  ↳ NO MATCHING QUEUE ENTRY — command ignored');
+  }
+
+  onConsoleChange(e) { this.setState({ consoleValue: e.target.value }); }
+  onSupplyChange(e) { this.setState({ supplyTension: Number(e.target.value) }); }
+  onBountyChange(e) { this.setState({ cashBounty: Number(e.target.value) }); }
+  onThreshChange(e) { this.setState({ tripwireThreshold: Number(e.target.value) }); }
+
+  onCohortWeightChange(id, e) {
+    const val = Number(e.target.value);
+    this.setState(prev => ({ cohortDrafts: { ...prev.cohortDrafts, [id]: val } }));
+  }
+
+  confirmCohortWeight(id) {
+    const draft = this.state.cohortDrafts[id];
+    if (draft === undefined) return;
+    const coh = this.state.cohorts.find(c => c.id === id);
+    const from = coh ? coh.weight : 0;
+    this.setState(prev => {
+      const cohortDrafts = { ...prev.cohortDrafts };
+      delete cohortDrafts[id];
+      return {
+        cohorts: prev.cohorts.map(c => c.id === id ? { ...c, weight: draft } : c),
+        cohortDrafts
+      };
+    });
+    this.pushLog('BIAS WEIGHT CONFIRMED → ' + (coh ? coh.name : id) + ' ' + (from > 0 ? '+' : '') + from + '% → ' + (draft > 0 ? '+' : '') + draft + '% visibility (operator-approved)');
+  }
+
+  discardCohortWeight(id) {
+    const coh = this.state.cohorts.find(c => c.id === id);
+    this.setState(prev => {
+      const cohortDrafts = { ...prev.cohortDrafts };
+      delete cohortDrafts[id];
+      return { cohortDrafts };
+    });
+    this.pushLog('BIAS WEIGHT DISCARDED → ' + (coh ? coh.name : id) + ' change reverted, no visibility impact applied');
+  }
+
+  selectIncentiveCohort(id) { this.setState({ incentiveCohortId: id }); }
+  incMultiplier() { this.setState(prev => ({ incentiveMultiplier: Math.min(5, prev.incentiveMultiplier + 0.5) })); }
+  decMultiplier() { this.setState(prev => ({ incentiveMultiplier: Math.max(1.5, prev.incentiveMultiplier - 0.5) })); }
+  selectDuration(min) { this.setState({ incentiveDurationMin: min }); }
+
+  armIncentive() { this.setState({ incentiveArmed: true }); }
+
+  cancelArmIncentive() {
+    this.setState({ incentiveArmed: false });
+    this.pushLog('FLASH INCENTIVE — deployment cancelled before confirm, no changes applied');
+  }
+
+  deployIncentive() {
+    if (!this.state.incentiveArmed) return;
+    const coh = this.state.cohorts.find(c => c.id === this.state.incentiveCohortId);
+    if (!coh) return;
+    const id = this.state.nextIncentiveId;
+    const mult = this.state.incentiveMultiplier;
+    const dur = this.state.incentiveDurationMin;
+    this.setState(prev => ({
+      nextIncentiveId: prev.nextIncentiveId + 1,
+      incentiveArmed: false,
+      activeIncentives: [...prev.activeIncentives, { id, cohortId: coh.id, cohortName: coh.name, multiplier: mult, remainingSec: dur * 60 }]
+    }));
+    this.pushLog('FLASH INCENTIVE CONFIRMED → ' + coh.name + ': ×' + mult.toFixed(1) + ' point multiplier deployed for ' + dur + 'm (operator-approved)');
+  }
+
+  killIncentive(id) {
+    const inc = this.state.activeIncentives.find(i => i.id === id);
+    this.setState(prev => ({ activeIncentives: prev.activeIncentives.filter(i => i.id !== id) }));
+    this.pushLog('INCENTIVE KILLED → ' + (inc ? inc.cohortName : id) + ' campaign ended early');
+  }
+
+  hexToRgb(hex) {
+    const h = hex.replace('#', '');
+    const v = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
+    const num = parseInt(v, 16);
+    return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+  }
+
+  renderVals() {
+    const s = this.state;
+
+    const capClass = (v) => v >= 95 ? 'cap-elite' : v >= 85 ? 'cap-high' : v >= 70 ? 'cap-mid' : 'cap-weedy';
+    const capLabel = (v) => v >= 95 ? 'Elite' : v >= 85 ? 'High' : v >= 70 ? 'Mid' : 'Weedy';
+
+    const instructors = s.instructors.map(ins => {
+      const statusBadgeClass = ins.status === 'IDLE' ? 'badge-idle' : ins.status === 'BUSY' ? 'badge-busy' : 'badge-offline';
+      let latencyText, latClass;
+      if (ins.status === 'BUSY') { latencyText = '0m (Live)'; latClass = 'lat-live'; }
+      else if (ins.latencySec === null) { latencyText = '--'; latClass = 'lat-ok'; }
+      else {
+        const mins = Math.floor(ins.latencySec / 60);
+        if (ins.latencySec >= 300) { latencyText = mins + 'm (CRIT)'; latClass = 'lat-crit'; }
+        else if (ins.latencySec >= 120) { latencyText = mins + 'm (Warn)'; latClass = 'lat-warn'; }
+        else { latencyText = mins + 'm'; latClass = 'lat-ok'; }
+      }
+
+      const actions = [];
+      if (ins.id === 'a' || ins.id === 'd') {
+        actions.push({ label: ins.ghosted ? 'GHOST OFF' : 'GHOST ON', cls: '', fn: () => this.toggleGhost(ins.id) });
+      }
+      if (ins.id === 'a') {
+        actions.push({ label: 'TRIPWIRE', cls: 'lever-danger', fn: () => this.fireTripwire(ins.id) });
+      }
+      if (ins.id === 'b') {
+        actions.push({ label: 'QUEUE NEXT SESSION', cls: '', fn: () => this.queueNext(ins.id) });
+      }
+      if (ins.id === 'c') {
+        actions.push({ label: 'FORCE WAKE-UP ALARM', cls: 'lever-danger', fn: () => this.forceWake(ins.id) });
+      }
+      if (ins.id === 'd') {
+        actions.push({ label: ins.autoAssign ? 'MANUAL ASSN' : 'AUTO-ASSN', cls: 'lever-primary', fn: () => this.toggleAutoAssign(ins.id) });
+      }
+
+      return {
+        id: ins.id,
+        name: ins.name,
+        status: ins.status,
+        statusBadgeClass,
+        jobs: ins.jobs,
+        complianceText: ins.compliance + '% (' + capLabel(ins.compliance) + ')',
+        capClass: capClass(ins.compliance),
+        latencyText,
+        latClass,
+        ghosted: ins.ghosted,
+        rowClass: ins.flash ? 'trip-flash' : ((ins.status === 'IDLE' && ins.latencySec !== null && ins.latencySec >= s.tripwireThreshold) ? 'row-flash' : ''),
+        actions
+      };
+    });
+
+    const queue = s.queue.map(q => {
+      let timelockText, tlClass;
+      if (q.shadowed) {
+        const m = Math.floor(q.shadowRemaining / 60);
+        const sec = q.shadowRemaining % 60;
+        timelockText = 'SHADOWED ' + m + ':' + sec.toString().padStart(2, '0');
+        tlClass = 'tl-grn';
+      } else {
+        timelockText = this.fmtMinSec(q.timelockSec) + (q.timelockSec >= 600 ? ' (RED)' : q.timelockSec >= 120 ? ' (YLW)' : ' (GRN)');
+        tlClass = q.timelockSec >= 600 ? 'tl-red' : q.timelockSec >= 120 ? 'tl-ylw' : 'tl-grn';
+      }
+
+      const bottleneck = q.shadowed
+        ? 'Confirmed to client — proxy finalizing room'
+        : (q.held ? q.bottleneck + ' (HELD)' : q.bottleneck);
+
+      const actions = [
+        { label: 'SHADOW MATCH', cls: 'lever-primary', fn: () => this.shadowMatch(q.id) }
+      ];
+      if (q.id === '104') actions.push({ label: 'REROUTE', cls: '', fn: () => this.reroute(q.id, 'Instructor D') });
+      if (q.id === '105') actions.push({ label: 'FORCE D', cls: '', fn: () => this.reroute(q.id, 'Instructor D') });
+      if (q.id === '106') actions.push({ label: 'HOLD QUEUE', cls: '', fn: () => this.holdQueue(q.id) });
+      actions.push({ label: '+BOUNTY', cls: '', fn: () => this.applyBounty(q.id) });
+
+      return {
+        id: q.id,
+        client: q.client,
+        request: q.request,
+        timelockText,
+        tlClass,
+        bottleneck,
+        overrideType: q.overrideType,
+        overrideCls: q.overrideType !== 'none' ? 'active' : '',
+        rowClass: (!q.shadowed && q.timelockSec >= 600) ? 'row-flash' : '',
+        actions
+      };
+    });
+
+    const stallingCount = queue.filter(q => q.tlClass === 'tl-red').length;
+
+    const supplyLabel = s.supplyTension >= 90 ? 'MAX' : s.supplyTension >= 70 ? 'HIGH' : s.supplyTension >= 40 ? 'MED' : 'LOW';
+
+    // --- Panel 4: Performance Telemetry ---
+    const compositeOf = (t) => (t.completion + t.retention + t.sentiment * 10) / 3;
+    const tRaw = s.instructors.map(ins => {
+      const t = s.telemetryData[ins.id];
+      return { id: ins.id, name: ins.name, completion: t.completion, retention: t.retention, sentiment: t.sentiment, composite: compositeOf(t) };
+    });
+    const tMean = tRaw.reduce((sum, x) => sum + x.composite, 0) / tRaw.length;
+    const tVariance = tRaw.reduce((sum, x) => sum + Math.pow(x.composite - tMean, 2), 0) / tRaw.length;
+    const tStdDev = Math.sqrt(tVariance) || 1;
+    const sortedByComposite = [...tRaw].sort((a, b) => b.composite - a.composite);
+
+    const telemetry = tRaw.map(x => {
+      const z = (x.composite - tMean) / tStdDev;
+      const drift = z <= -1.5;
+      const rankIdx = sortedByComposite.findIndex(y => y.id === x.id);
+      const percentile = Math.round(((tRaw.length - rankIdx) / tRaw.length) * 100);
+      return {
+        id: x.id,
+        name: x.name,
+        completionText: x.completion + '%',
+        retentionText: x.retention + '%',
+        sentimentText: x.sentiment.toFixed(1) + '/10',
+        compositeText: x.composite.toFixed(1),
+        capClass: capClass(x.composite),
+        percentile,
+        drift,
+        noDrift: !drift,
+        zText: z.toFixed(2),
+        rowClass: drift ? 'row-flash' : ''
+      };
+    });
+
+    // --- Panel 5: Market Clearing & Pricing ---
+    const segments = s.segments.map(seg => {
+      const maxBookings = Math.max(...seg.points.map(p => p.bookings));
+      const first = seg.points[0], last = seg.points[seg.points.length - 1];
+      const pctPriceChange = (last.price - first.price) / first.price;
+      const pctBookingChange = (last.bookings - first.bookings) / first.bookings;
+      const elasticity = pctBookingChange / pctPriceChange;
+      const isElastic = Math.abs(elasticity) > 1;
+      return {
+        id: seg.id,
+        name: seg.name,
+        elasticLabel: (isElastic ? 'ELASTIC (' : 'INELASTIC (') + elasticity.toFixed(2) + ')',
+        elasticClass: isElastic ? 'elastic' : 'inelastic',
+        points: seg.points.map(p => ({
+          priceText: '$' + p.price,
+          bookingsText: p.bookings + '/wk',
+          barPct: (p.bookings / maxBookings) * 100,
+          currentClass: p.price === seg.currentPrice ? 'current' : ''
+        }))
+      };
+    });
+
+    const timeBlocks = ['EARLY AM', 'MIDDAY', 'AFTERNOON', 'EVENING'];
+    const accentRgb = this.hexToRgb(this.props.accent ?? '#f5a623');
+    const utilization = s.instructors.map(ins => {
+      const cells = s.utilizationData[ins.id].map(pct => {
+        const opacity = 0.12 + (pct / 100) * 0.75;
+        return {
+          pct,
+          bg: 'rgba(' + accentRgb.r + ',' + accentRgb.g + ',' + accentRgb.b + ',' + opacity.toFixed(2) + ')',
+          fg: opacity > 0.5 ? '#0a0b0d' : '#c9cdd6'
+        };
+      });
+      return { name: ins.name, cells };
+    });
+
+    // --- Panel 6: Behavioral Biasing & Incentive Ops ---
+    const cohorts = s.cohorts.map(coh => {
+      const draft = s.cohortDrafts[coh.id];
+      const hasPending = draft !== undefined && draft !== coh.weight;
+      const sliderValue = hasPending ? draft : coh.weight;
+      const fillLeft = sliderValue >= 0 ? 50 : 50 + sliderValue;
+      const fillWidth = Math.abs(sliderValue);
+      const fillColor = sliderValue > 0 ? '#34d399' : (sliderValue < 0 ? '#f87171' : 'transparent');
+      const isLarge = hasPending && Math.abs(draft - coh.weight) >= 25;
+      return {
+        id: coh.id,
+        name: coh.name,
+        weight: coh.weight,
+        sliderValue,
+        fillLeft,
+        fillWidth,
+        fillColor,
+        weightText: (coh.weight > 0 ? '+' : '') + coh.weight + '% visibility',
+        weightColor: coh.weight > 0 ? '#34d399' : (coh.weight < 0 ? '#f87171' : '#8890a0'),
+        onChange: (e) => this.onCohortWeightChange(coh.id, e),
+        hasPending,
+        committedText: (coh.weight > 0 ? '+' : '') + coh.weight + '%',
+        pendingText: hasPending ? (draft > 0 ? '+' : '') + draft + '%' : '',
+        isLarge,
+        largeChangeClass: isLarge ? 'large' : '',
+        confirm: () => this.confirmCohortWeight(coh.id),
+        discard: () => this.discardCohortWeight(coh.id)
+      };
+    });
+
+    const cohortChips = s.cohorts.map(coh => ({
+      id: coh.id,
+      label: coh.name,
+      cls: coh.id === s.incentiveCohortId ? 'lever-primary' : '',
+      fn: () => this.selectIncentiveCohort(coh.id)
+    }));
+
+    const durationChips = [15, 30, 60].map(min => ({
+      min,
+      label: min + 'm',
+      cls: min === s.incentiveDurationMin ? 'lever-primary' : '',
+      fn: () => this.selectDuration(min)
+    }));
+
+    const activeIncentives = s.activeIncentives.map(inc => ({
+      id: inc.id,
+      cohortName: inc.cohortName,
+      multiplierText: inc.multiplier.toFixed(1),
+      remainingText: this.fmtMinSec(inc.remainingSec),
+      kill: () => this.killIncentive(inc.id)
+    }));
+
+    const armedCohort = s.cohorts.find(c => c.id === s.incentiveCohortId);
+    const armedSummaryText = (armedCohort ? armedCohort.name : '—') + ' × ' + s.incentiveMultiplier.toFixed(1) + ' for ' + s.incentiveDurationMin + 'm';
+
+    return {
+      accent: this.props.accent ?? '#f5a623',
+      headerDate: '09/01/2026',
+      headerClock: this.fmtClock(s.clockSeconds),
+      stallingCount: stallingCount > 0,
+      noStalling: stallingCount === 0,
+      stallingText: stallingCount + ' ACTIVE MATCH' + (stallingCount === 1 ? '' : 'ES') + ' STALLING',
+      instructors,
+      queue,
+      supplyTension: s.supplyTension,
+      supplyPct: s.supplyTension,
+      supplyText: s.supplyTension + '% ' + supplyLabel,
+      cashBounty: s.cashBounty,
+      bountyPct: (s.cashBounty / 30) * 100,
+      bountyText: '+$' + s.cashBounty + '/Match',
+      tripwireThreshold: s.tripwireThreshold,
+      threshPct: ((s.tripwireThreshold - 30) / (300 - 30)) * 100,
+      threshText: s.tripwireThreshold + ' Seconds',
+      consoleValue: s.consoleValue,
+      log: s.log,
+      onConsoleChange: (e) => this.onConsoleChange(e),
+      onSupplyChange: (e) => this.onSupplyChange(e),
+      onBountyChange: (e) => this.onBountyChange(e),
+      onThreshChange: (e) => this.onThreshChange(e),
+      executeCommand: () => this.executeCommand(),
+      telemetry,
+      segments,
+      timeBlocks,
+      utilization,
+      cohorts,
+      cohortChips,
+      durationChips,
+      multiplierText: '×' + s.incentiveMultiplier.toFixed(1),
+      decMultiplier: () => this.decMultiplier(),
+      incMultiplier: () => this.incMultiplier(),
+      deployIncentive: () => this.deployIncentive(),
+      armIncentive: () => this.armIncentive(),
+      cancelArmIncentive: () => this.cancelArmIncentive(),
+      incentiveArmed: s.incentiveArmed,
+      incentiveNotArmed: !s.incentiveArmed,
+      armedSummaryText,
+      activeIncentives,
+      noActiveIncentives: activeIncentives.length === 0
+    };
+  }
+}
+</script>
+</body>
+</html>

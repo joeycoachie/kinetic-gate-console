@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kinetic Gate — Canvas</title>
+    <style>
+      :root {
+        --bg: #09090b;
+        --panel: rgba(255,255,255,0.03);
+        --border: rgba(255,255,255,0.08);
+        --text: #e8e6df;
+        --muted: #8d919a;
+      }
+
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        width: 100%;
+        min-height: 100%;
+        background: var(--bg);
+        color: var(--text);
+        font-family: Inter, 'Segoe UI', sans-serif;
+      }
+
+      body {
+        display: flex;
+        justify-content: center;
+        padding: 30px;
+        overflow: auto;
+      }
+
+      .canvas-shell {
+        position: relative;
+        width: 100%;
+        min-height: 3500px;
+        background:
+          linear-gradient(rgba(255,255,255,0.015), rgba(255,255,255,0.015)),
+          #0b0b0d;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        box-shadow: 0 45px 130px rgba(0,0,0,0.6);
+      }
+
+      .artboard {
+        position: absolute;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 20px;
+        background: rgba(255,255,255,0.01);
+      }
+
+      .artboard .dc-host {
+        width: 100%;
+        height: 100%;
+      }
+
+      .artboard .dc-host > * {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script src="./support.js"></script>
+    <script>
+      async function bootCanvas() {
+        const app = document.getElementById('app');
+        const canvas = await fetch('./canvas.json').then((res) => res.json());
+        const maxX = canvas.artboards.reduce((acc, art) => Math.max(acc, art.x + art.w), 0);
+        const maxY = canvas.artboards.reduce((acc, art) => Math.max(acc, art.y + art.h), 0);
+
+        const shell = document.createElement('div');
+        shell.className = 'canvas-shell';
+        shell.style.width = Math.max(maxX + 50, 1500) + 'px';
+        shell.style.height = Math.max(maxY + 80, 3200) + 'px';
+        app.appendChild(shell);
+
+        for (const artboard of canvas.artboards) {
+          const frame = document.createElement('div');
+          frame.className = 'artboard';
+          frame.style.left = artboard.x + 'px';
+          frame.style.top = artboard.y + 'px';
+          frame.style.width = artboard.w + 'px';
+          frame.style.height = artboard.h + 'px';
+          shell.appendChild(frame);
+
+          const html = await fetch('./' + artboard.file).then((res) => res.text());
+          window.DCLogic.renderDocument(html, frame);
+        }
+      }
+
+      bootCanvas().catch((error) => {
+        console.error(error);
+        document.getElementById('app').innerHTML = '<pre style="color:#fff;padding:24px;">Canvas failed to load: ' + error.message + '</pre>';
+      });
+    </script>
+  </body>
+</html>

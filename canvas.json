@@ -1,0 +1,17 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 390, "h": 844 },
+    { "file": "InstructorJourney.dc.html", "x": 470, "y": 0, "w": 390, "h": 844 },
+    { "file": "Terminal.dc.html", "x": 0, "y": 964, "w": 1440, "h": 2600 },
+    { "file": "MatchEngine.dc.html", "x": 1540, "y": 964, "w": 1100, "h": 900 },
+    { "file": "Landing.dc.html", "x": 0, "y": 3684, "w": 1440, "h": 920 }
+  ],
+  "annotations": [
+    { "id": "note-client-journey", "x": 0, "y": -60, "w": 390, "text": "① CLIENT — click through the full journey: apply → screen (6 Q) → waitlist → SMS unlock → book a slot → Story Card" },
+    { "id": "note-instructor-journey", "x": 470, "y": -60, "w": 390, "text": "② INSTRUCTOR — click through: incoming match (Tripwire call) → accept → 30-second post-class log → payout" },
+    { "id": "note-terminal", "x": 0, "y": 900, "w": 500, "text": "③ FOUNDER — the Guild Console (ops terminal): supply pressure, match latency, override dials, performance telemetry, pricing & utilization, behavioral biasing" },
+    { "id": "note-matchengine", "x": 1540, "y": 900, "w": 500, "text": "④ FOUNDER — ranked Match Engine (per-client)" },
+    { "id": "note-landing", "x": 0, "y": 3620, "w": 700, "text": "⑤ PUBLIC — Kinetic Gate waitlist landing page" }
+  ],
+  "launch": { "view": "focused", "file": "Main.dc.html" }
+}
